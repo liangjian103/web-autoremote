@@ -1,0 +1,192 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>服务管控</title>
+<meta http-equiv="pragma" content="no-cache">
+<meta http-equiv="cache-control" content="no-cache">
+<meta http-equiv="expires" content="0">
+<meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+<meta http-equiv="description" content="服务管控">
+<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+
+<script type="text/javascript">
+	$(document).ready(function() {
+		//调用后台接口，加载各服务运行情况
+        queryServerList();
+	});
+
+    function StringBuffer() {
+        this.__strings__ = new Array();
+    }
+    StringBuffer.prototype.append = function (str) {
+        this.__strings__.push(str);
+        return this;    //方便链式操作
+    }
+    StringBuffer.prototype.toString = function () {
+        return this.__strings__.join("");
+    }
+
+    //查询服务运行状态
+    function queryServerList(){
+		$.post("/autoRemote/apis/queryServerInfoList",
+		function(data,status){
+			//alert("数据：" + data + "\n状态：" + status);
+			//var obj = jQuery.parseJSON(data);//IE浏览器不支持
+			$("#rs2").html(data);
+			var obj = eval("(" + data + ")");
+			if(obj.state=="1001"){
+              var list = obj.result
+                var buffer = new StringBuffer();
+                for (var index in list){
+                    serverInfo = list[index];
+                    buffer.append("<tr>");
+                    buffer.append("<td>"+index+"</td>");
+                    buffer.append("<td><input name=\"id\" type=\"hidden\" value=\""+serverInfo.id+"\">");
+                    buffer.append("<input name=\"ip\" type=\"text\" value=\""+serverInfo.ip+"\"></td>");
+                    buffer.append("<td><input name=\"serverName\" type=\"text\" value=\""+serverInfo.serverName+"\"></td>");
+                    buffer.append("<td><input name=\"serverPath\" type=\"text\" value=\""+serverInfo.serverPath+"\"></td>");
+                    buffer.append("<td><input name=\"runState\" type=\"text\" value=\"\"></td>");
+                    buffer.append("<td><input name=\"startCmd\" type=\"text\" value=\"\"></td>");
+                    buffer.append("<td><input name=\"stopCmd\" type=\"text\" value=\"\"></td>");
+                    buffer.append("<td><input name=\"logPath\" type=\"text\" value=\"\"></td>");
+                    buffer.append("<td><input name=\"grepName\" type=\"text\" value=\"\"></td>");
+                    buffer.append("<td><input name=\"save\" type=\"button\" value=\"添加\" onclick=\"save(this);\" >" +
+                        "<input name=\"update\" type=\"button\" value=\"更新\" onclick=\"update(this);\" >" +
+                        "<input name=\"queryServerRunState\" type=\"button\" value=\"查看运行状态\" onclick=\"queryServerRunState(this);\" >" +
+						"</td>");
+                    buffer.append("</tr>");
+                }
+                $("#serverInfoTable").append(buffer.toString());
+            }else{
+                alert(data);
+            }
+		});
+    }
+
+    //添加
+    function save(thobj) {
+        var tr = $(thobj).parents("tr");
+        param = {
+            ip:$(tr).find("[name=ip]").val(),
+			serverName:$(tr).find("[name=serverName]").val(),
+			serverPath:$(tr).find("[name=serverPath]").val()
+		};
+        $.post("/autoRemote/apis/saveServerInfo",param,
+			function(data,status){
+				$("#rs2").html(data);
+				var obj = eval("(" + data + ")");
+				alert(obj.state+"----"+obj.bak);
+			});
+    }
+    //更新
+    function update(thobj) {
+        var tr = $(thobj).parents("tr");
+        param = {
+            id:$(tr).find("[name=id]").val(),
+            ip:$(tr).find("[name=ip]").val(),
+			serverName:$(tr).find("[name=serverName]").val(),
+			serverPath:$(tr).find("[name=serverPath]").val()
+		};
+        $.post("/autoRemote/apis/updateServerInfo",param,
+			function(data,status){
+				$("#rs2").html(data);
+				var obj = eval("(" + data + ")");
+				alert(obj.state+"----"+obj.bak);
+			});
+    }
+    //查看运行状态
+    function queryServerRunState(thobj) {
+        var tr = $(thobj).parents("tr");
+        param = {
+            id:$(tr).find("[name=id]").val(),
+            ip:$(tr).find("[name=ip]").val(),
+			serverName:$(tr).find("[name=serverName]").val(),
+			serverPath:$(tr).find("[name=serverPath]").val()
+		};
+        $.post("/autoRemote/apis/queryServerRunState",param,
+			function(data,status){
+				$("#rs2").html(data);
+				var obj = eval("(" + data + ")");
+				alert(obj.state+"----"+obj.result);
+                $(tr).find("[name=runState]").val(obj.result);
+                if(obj.state=='1001'){
+                    $(tr).find("[name=runState]").val((obj.result==''||obj.result==null)?"未启动":"启动("+obj.result+")");
+                }else{
+                    $(tr).find("[name=runState]").val(obj.bak);
+                }
+			});
+    }
+
+
+    //追加服务信息
+    function addTr(){
+        var buffer = new StringBuffer();
+        buffer.append("<tr>");
+        buffer.append("<td>--</td>");
+        buffer.append("<td><input name=\"ip\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"serverName\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"serverPath\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"runState\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"startCmd\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"stopCmd\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"logPath\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"grepName\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"save\" type=\"button\" value=\"添加\" onclick=\"save(this);\" ></td>");
+        buffer.append("</tr>");
+        $("#serverInfoTable").append(buffer.toString());
+    }
+
+    //查看各服务运行状态
+    function queryServerState() {
+        $("#serverInfoTable").find("tr").each(function (k,v){
+            param = {
+                id:$(v).find("[name=id]").val(),
+                ip:$(v).find("[name=ip]").val(),
+                serverName:$(v).find("[name=serverName]").val(),
+                serverPath:$(v).find("[name=serverPath]").val()
+            };
+            $.post("/autoRemote/apis/queryServerRunState",param,
+                function(data,status){
+                    $("#rs2").html(data);
+                    var obj = eval("(" + data + ")");
+                    if(obj.state=='1001'){
+                        $(v).find("[name=runState]").val((obj.result==''||obj.result==null)?"未启动":"启动("+obj.result+")");
+                    }else{
+                        $(v).find("[name=runState]").val(obj.bak);
+					}
+                });
+        });
+    }
+
+</script>
+
+</head>
+<body>
+	<h1 style="color: green;">服务管控</h1>
+	<hr />
+	
+<div id="bn" >
+	<input type="button" value="查看各服务运行状态" onclick="queryServerState()" >
+</div>
+	<div id="rs2" ></div>
+<div id="rs" >
+	<table id="serverInfoTable" border='1' bordercolor='#cccccc' style='border-collapse:collapse'>
+		<tr>
+			<td>序号</td>
+			<td>服务器IP</td>
+			<td>服务名称</td>
+			<td>部署路径</td>
+			<td>进程ID</td>
+			<td>启动命令</td>
+			<td>停止命令</td>
+			<td>日志路径</td>
+			<td>关键词</td>
+			<td>操作</td>
+		</tr>
+	</table>
+	<input type="button" value="追加备案表信息" onclick="addTr()" >
+</div>
+
+</body>
+</html>

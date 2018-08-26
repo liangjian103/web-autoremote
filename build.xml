@@ -1,0 +1,60 @@
+<!-- 官方说明 http://maven.apache.org/plugins/maven-assembly-plugin/assembly.html#class_dependencySet -->
+<assembly>
+    <!--构建包ID-->
+    <id>bin</id>
+
+    <!--构建包类型-->
+    <formats>
+        <format>tar.gz</format>
+    </formats>
+
+    <!--是否创建基础目录，也就是压缩包中的目录-->
+    <includeBaseDirectory>true</includeBaseDirectory>
+    <!--基础目录名称-->
+    <baseDirectory>web-autoremote</baseDirectory>
+
+
+    <dependencySets>
+        <!-- 指定依赖关系 -->
+        <dependencySet>
+            <!--将依赖jar输出到指定位置-->
+            <outputDirectory>/lib</outputDirectory>
+            <!-- 是否包含当前工程编译后的jar -->
+            <useProjectArtifact>true</useProjectArtifact>
+        </dependencySet>
+    </dependencySets>
+
+    <!--指定配置文件打包位置,【从下往上顺序】-->
+    <fileSets>
+        <!-- 将ReadMe.txt 打包到 / 目录下 -->
+        <fileSet>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>ReadMe.txt</include>
+            </includes>
+        </fileSet>
+
+        <!-- *.sh 打包到 / 目录下 -->
+        <fileSet>
+            <outputDirectory>/</outputDirectory>
+            <includes>
+                <include>*.sh</include>
+            </includes>
+        </fileSet>
+
+        <!-- 将src/main/resources/*.properties 打包到/目录下 -->
+        <fileSet>
+            <outputDirectory>/static</outputDirectory>
+            <directory>src/main/resources/static</directory>
+        </fileSet>
+
+        <!-- 将src/main/resources/*.properties 打包到/conf目录下 -->
+        <fileSet>
+            <outputDirectory>/</outputDirectory>
+            <directory>src/main/resources</directory>
+            <includes>
+                <include>*.properties</include>
+            </includes>
+        </fileSet>
+    </fileSets>
+</assembly>
