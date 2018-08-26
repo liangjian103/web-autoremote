@@ -188,5 +188,10 @@
 	<input type="button" value="追加备案表信息" onclick="addTr()" >
 </div>
 
+	<form enctype="multipart/form-data" method="post" action="/autoRemote/apis/serverUp">
+		程序包：<input type="file" name="file"/>
+		<input type="submit" value="程序升级"/>
+	</form>
+
 </body>
 </html>

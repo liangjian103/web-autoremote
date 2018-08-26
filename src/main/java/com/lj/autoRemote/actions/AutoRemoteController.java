@@ -3,11 +3,14 @@ package com.lj.autoRemote.actions;
 import com.lj.autoRemote.beans.ServerInfoBean;
 import com.lj.autoRemote.service.AutoRemoteService;
 import com.lj.utils.CtfoJsonUtil;
+import com.lj.utils.FileUtil;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -100,6 +103,34 @@ public class AutoRemoteController {
 			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /queryServerRunState is ERROR!"+e.getMessage(),e);
+		}
+	}
+
+	/** 程序升级包上传 */
+	@RequestMapping(value = "/serverUp", method = { RequestMethod.POST, RequestMethod.GET })
+	public void serverUp(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file)throws Exception {
+		String returnStr = "upload success";
+		try {
+			String contentType = file.getContentType();
+			String fileName = file.getOriginalFilename();
+			String filePath = request.getSession().getServletContext().getRealPath("serverUpload/");
+
+			System.out.println("filePath-->" + filePath);
+			System.out.println("fileName-->" + fileName);
+			System.out.println("getContentType-->" + contentType);
+			try {
+				FileUtil.uploadFile(file.getBytes(), filePath, fileName);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("state","9001");
+			map.put("bak","程序升级包上传异常。"+e.getMessage());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /serverUp is ERROR!"+e.getMessage(),e);
 		}
 	}
 
