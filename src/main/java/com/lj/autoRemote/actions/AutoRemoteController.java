@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -106,23 +107,39 @@ public class AutoRemoteController {
 		}
 	}
 
-	/** 程序升级包上传 */
+	/** 程序包推送给远程节点 */
 	@RequestMapping(value = "/serverUp", method = { RequestMethod.POST, RequestMethod.GET })
+	public void remoteServerUp(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file)throws Exception {
+		String returnStr = "upload success";
+		try {
+			returnStr = autoRemoteService.serverUp(file);
+			System.out.println(returnStr);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("state","9001");
+			map.put("bak","程序升级包上传异常。"+e.getMessage());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /serverUp is ERROR!"+e.getMessage(),e);
+		}
+	}
+
+	/** 程序升级包上传(本地) */
+	@RequestMapping(value = "/local/serverUp", method = { RequestMethod.POST, RequestMethod.GET })
 	public void serverUp(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file)throws Exception {
 		String returnStr = "upload success";
 		try {
-			String contentType = file.getContentType();
-			String fileName = file.getOriginalFilename();
 			String filePath = request.getSession().getServletContext().getRealPath("serverUpload/");
-
 			System.out.println("filePath-->" + filePath);
-			System.out.println("fileName-->" + fileName);
-			System.out.println("getContentType-->" + contentType);
-			try {
-				FileUtil.uploadFile(file.getBytes(), filePath, fileName);
-			} catch (Exception e) {
-				e.printStackTrace();
+			System.out.println("fileName-->" + file.getOriginalFilename());
+			System.out.println("getContentType-->" + file.getContentType());
+			File targetFile = new File(filePath);
+			if(!targetFile.exists()){
+				targetFile.mkdirs();
 			}
+			//保存到本地
+			file.transferTo(new File(filePath + file.getOriginalFilename()));
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String,Object> map = new HashMap<String,Object>();
