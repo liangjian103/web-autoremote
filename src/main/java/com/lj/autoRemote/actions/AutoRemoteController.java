@@ -6,6 +6,7 @@ import com.lj.utils.CtfoJsonUtil;
 import com.lj.utils.FileUtil;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -31,6 +32,9 @@ public class AutoRemoteController {
 
 	@Autowired
 	private AutoRemoteService autoRemoteService;
+
+	@Value("${server.upPath}")
+	String upPath;
 
 	/** 保存备案表信息 */
 	@RequestMapping(value = "/saveServerInfo", method = { RequestMethod.POST, RequestMethod.GET })
@@ -112,8 +116,8 @@ public class AutoRemoteController {
 	public void remoteServerUp(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file)throws Exception {
 		String returnStr = "upload success";
 		try {
-			returnStr = autoRemoteService.serverUp(file);
-			System.out.println(returnStr);
+			Map<String,Object> map = autoRemoteService.serverUp(file);
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String,Object> map = new HashMap<String,Object>();
@@ -125,29 +129,29 @@ public class AutoRemoteController {
 		}
 	}
 
-	/** 程序升级包上传(本地) */
-	@RequestMapping(value = "/local/serverUp", method = { RequestMethod.POST, RequestMethod.GET })
-	public void serverUp(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file)throws Exception {
-		String returnStr = "upload success";
+	/**
+	 * 程序升级包上传(本地)
+	 */
+	@RequestMapping(value = "/local/serverUp", method = {RequestMethod.POST, RequestMethod.GET})
+	public void serverUp(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) throws Exception {
+		String returnStr = "";
 		try {
-			String filePath = request.getSession().getServletContext().getRealPath("serverUpload/");
-			System.out.println("filePath-->" + filePath);
-			System.out.println("fileName-->" + file.getOriginalFilename());
-			System.out.println("getContentType-->" + file.getContentType());
-			File targetFile = new File(filePath);
-			if(!targetFile.exists()){
-				targetFile.mkdirs();
-			}
+			new File(upPath).mkdirs();
 			//保存到本地
-			file.transferTo(new File(filePath + file.getOriginalFilename()));
-			retrunData(response, returnStr);
-		} catch (Exception e) {
-			Map<String,Object> map = new HashMap<String,Object>();
-			map.put("state","9001");
-			map.put("bak","程序升级包上传异常。"+e.getMessage());
+			String filePathName = upPath + File.separator + file.getOriginalFilename();
+			file.transferTo(new File(filePathName));
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "1001");
+			map.put("bak", "程序升级包上传成功! RemoteHost:"+request.getRemoteHost()+" Path:"+filePathName);
 			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
-			logger.error("AutoRemoteController /serverUp is ERROR!"+e.getMessage(),e);
+		} catch (Exception e) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "9001");
+			map.put("bak", "程序升级包上传异常。" + e.getMessage());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /serverUp is ERROR!" + e.getMessage(), e);
 		}
 	}
 
