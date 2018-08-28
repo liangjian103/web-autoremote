@@ -151,7 +151,53 @@ public class AutoRemoteController {
 			map.put("bak", "程序升级包上传异常。" + e.getMessage());
 			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
-			logger.error("AutoRemoteController /serverUp is ERROR!" + e.getMessage(), e);
+			logger.error("AutoRemoteController /local/serverUp is ERROR!" + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * 重启服务（本地）
+	 */
+	@RequestMapping(value = "/local/rebootServer", method = {RequestMethod.POST, RequestMethod.GET})
+	public void rebootServer(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		String returnStr = "";
+		try {
+			autoRemoteService.rebootServer();
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "1001");
+			map.put("bak", "服务重启请求已发送! RemoteHost:"+request.getRemoteHost());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "9001");
+			map.put("bak", "服务重启请求已发送。" + e.getMessage());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+		}
+	}
+
+	/**
+	 * 更新程序包（本地）
+	 */
+	@RequestMapping(value = "/local/setupServer", method = {RequestMethod.POST, RequestMethod.GET})
+	public void setupServer(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		String returnStr = "";
+		try {
+			autoRemoteService.setupServer();
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "1001");
+			map.put("bak", "服务重启请求已发送! RemoteHost:"+request.getRemoteHost());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "9001");
+			map.put("bak", "服务重启请求已发送。" + e.getMessage());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
 		}
 	}
 

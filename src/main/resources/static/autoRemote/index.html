@@ -159,6 +159,21 @@
         });
     }
 
+    //重启服务
+    function rebootServer() {
+        $.post("/autoRemote/apis/local/rebootServer",{},
+            function(data,status){
+                $("#rs2").html(data);
+            });
+    }
+    //重启服务
+    function setupServer() {
+        $.post("/autoRemote/apis/local/setupServer",{},
+            function(data,status){
+                $("#rs2").html(data);
+            });
+    }
+
 </script>
 
 </head>
@@ -192,6 +207,9 @@
 		程序包：<input type="file" name="file"/>
 		<input type="submit" value="程序升级"/>
 	</form>
+
+	<input type="button" value="重启服务" onclick="rebootServer()" >
+	<input type="button" value="程序升级更新" onclick="setupServer()" >
 
 </body>
 </html>

@@ -32,6 +32,8 @@ public class AutoRemoteService {
 	@Autowired
     private RestTemplate restTemplate;
 
+    @Value("${spring.profiles.active}")
+    String active;
     @Value("${server.port}")
     String port;
     @Value("${server.tempPath}")
@@ -144,7 +146,7 @@ public class AutoRemoteService {
     }
 
     /**
-     * 向远程服务发起更新
+     * 向远程服务传输程序包
      */
     public Map<String,Object> serverUp(MultipartFile multipartFile)throws IOException{
         Map<String,Object> map = new HashMap<String, Object>();
@@ -231,6 +233,26 @@ public class AutoRemoteService {
         String jsonStr = response.getBody();
         logger.info("request URL:" + url +" Return:" + jsonStr);
         return jsonStr;
+    }
+
+    /**
+     * 重启服务
+     * @return
+     * @throws Exception
+     */
+    public void rebootServer()throws Exception{
+        logger.info("rebootServer active:" + active );
+        CmdToolkit.rebootServer(active);
+    }
+
+    /**
+     * 更新程序包
+     * @return
+     * @throws Exception
+     */
+    public void setupServer()throws Exception{
+        logger.info("setupServer active:" + active );
+        CmdToolkit.setupServer(active);
     }
 
 }

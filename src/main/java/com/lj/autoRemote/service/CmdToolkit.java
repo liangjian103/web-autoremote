@@ -1,6 +1,7 @@
 package com.lj.autoRemote.service;
 
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Value;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -58,6 +59,24 @@ public final class CmdToolkit {
         String bashCommand = "kill -9 "+pid;
         CmdToolkit.execShell(bashCommand);
         return pid;
+    }
+
+    /**
+     * 重启服务
+     * @param active 环境
+     */
+    public static void rebootServer(String active)throws IOException{
+        String bashCommand = "nohup bash rebootServer.sh "+active+" &";
+        CmdToolkit.execShell(bashCommand);
+    }
+
+    /**
+     * 更新程序包
+     * @param active 环境
+     */
+    public static void setupServer(String active)throws IOException{
+        String bashCommand = "nohup bash setup.sh "+active+" &";
+        CmdToolkit.execShell(bashCommand);
     }
 
 }
