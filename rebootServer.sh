@@ -3,7 +3,7 @@
 LANG="zh_CN.UTF-8"
 export LANG
 
-pid=`ps -ef|grep "web-autoremote"|grep -v grep|grep -v PPID|grep -v tail|grep -v "rebootServer.sh"|awk '{print $2}'`
+pid=`ps -ef|grep "web-autoremote"|grep -v grep|grep -v PPID|grep -v ' tail '|grep -v "rebootServer.sh"|awk '{print $2}'`
 echo "pid:$pid"
 
 if [ $pid != '' ]

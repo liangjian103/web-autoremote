@@ -51,8 +51,8 @@
                     buffer.append("<td><input name=\"stopCmd\" type=\"text\" value=\"\"></td>");
                     buffer.append("<td><input name=\"logPath\" type=\"text\" value=\"\"></td>");
                     buffer.append("<td><input name=\"grepName\" type=\"text\" value=\"\"></td>");
-                    buffer.append("<td><input name=\"save\" type=\"button\" value=\"添加\" onclick=\"save(this);\" >" +
-                        "<input name=\"update\" type=\"button\" value=\"更新\" onclick=\"update(this);\" >" +
+                    buffer.append("<td><input name=\"save\" type=\"button\" value=\"另存\" onclick=\"save(this);\" >" +
+                        "<input name=\"update\" type=\"button\" value=\"保存\" onclick=\"update(this);\" >" +
                         "<input name=\"queryServerRunState\" type=\"button\" value=\"查看运行状态\" onclick=\"queryServerRunState(this);\" >" +
 						"</td>");
                     buffer.append("</tr>");
@@ -166,9 +166,9 @@
                 $("#rs2").html(data);
             });
     }
-    //重启服务
+    //升级远程各服务
     function setupServer() {
-        $.post("/autoRemote/apis/local/setupServer",{},
+        $.post("/autoRemote/apis/setupServer",{},
             function(data,status){
                 $("#rs2").html(data);
             });
@@ -208,7 +208,7 @@
 		<input type="submit" value="程序升级"/>
 	</form>
 
-	<input type="button" value="重启服务" onclick="rebootServer()" >
+	<input type="button" value="当前服务重启" onclick="rebootServer()" >
 	<input type="button" value="程序升级更新" onclick="setupServer()" >
 
 </body>

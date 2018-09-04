@@ -44,7 +44,7 @@ public final class CmdToolkit {
      * @return
      */
     public static String queryProcessPid(String serviceName)throws IOException{
-        String bashCommand = "ps -ef|grep "+serviceName+"|grep -v grep|grep -v PPID|grep -v tail|awk '{print $2}'";
+        String bashCommand = "ps -ef|grep "+serviceName+"|grep -v grep|grep -v 'PPID'|grep -v ' tail '|awk '{print $2}'";
         String pid = CmdToolkit.execShell(bashCommand);
         return pid;
     }

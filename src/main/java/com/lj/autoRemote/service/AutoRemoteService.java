@@ -167,7 +167,6 @@ public class AutoRemoteService {
                 throw new IOException(message,e);
             }
 
-            //后续扩展为多个机器,再改造，目前为一个机器
             for (ServerInfoBean serverInfoBean : list) {
                 String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/serverUp";
                 try {
@@ -193,7 +192,7 @@ public class AutoRemoteService {
             //删除临时文件夹
             FileUtils.deleteDirectory(tempDirectory);
         }else {
-            map.put("bak","DB没有web-autoremote服务部署节点");
+            map.put("info","DB没有web-autoremote服务部署节点");
         }
         return map;
     }
@@ -216,6 +215,46 @@ public class AutoRemoteService {
     public void setupServer()throws Exception{
         logger.info("setupServer active:" + active );
         CmdToolkit.setupServer(active);
+    }
+
+    /**
+     * 远程更新程序包
+     * @return
+     * @throws Exception
+     */
+    public Map<String,Object> remoteSetupServer()throws Exception{
+        Map<String,Object> map = new HashMap<String, Object>();
+        List<ServerInfoBean> list = autoRemoteDao.queryMyselfList();
+        if(list!=null&&list.size()>0){
+            for (ServerInfoBean serverInfoBean : list) {
+                try{
+                    String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/setupServer";
+                    HttpHeaders headers = new HttpHeaders();
+                    //  请勿轻易改变此提交方式，大部分的情况下，提交方式都是表单提交
+                    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+                    //  封装参数，千万不要替换为Map与HashMap，否则参数无法传递
+                    MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+                    //  也支持中文
+                    params.add("id", serverInfoBean.getId() + "");
+                    params.add("ip", serverInfoBean.getIp());
+                    params.add("serverName", serverInfoBean.getServerName());
+                    params.add("serverPath", serverInfoBean.getServerPath());
+                    HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
+                    //  执行HTTP请求
+                    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                    //  输出结果
+                    String jsonStr = response.getBody();
+                    logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Return:" + jsonStr);
+                    map.put(serverInfoBean.getId()+"",JSON.parse(jsonStr));
+                }catch (Exception e){
+                    map.put(serverInfoBean.getId()+"",serverInfoBean.getIp()+","+e.getMessage());
+                    logger.error("remoteSetupServer is ERROR! IP:"+serverInfoBean.getIp(),e);
+                }
+            }
+        }else{
+            map.put("info","DB没有web-autoremote服务部署节点");
+        }
+        return map;
     }
 
 }
