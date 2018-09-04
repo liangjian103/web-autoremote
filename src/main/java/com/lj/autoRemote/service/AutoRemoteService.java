@@ -150,89 +150,52 @@ public class AutoRemoteService {
      */
     public Map<String,Object> serverUp(MultipartFile multipartFile)throws IOException{
         Map<String,Object> map = new HashMap<String, Object>();
-        List<ServerInfoBean> list = new ArrayList<ServerInfoBean>();
-        ServerInfoBean serverInfoBean2 = new ServerInfoBean();
-        serverInfoBean2.setIp("127.0.0.1");
-        serverInfoBean2.setId(123);
-        serverInfoBean2.setServerName("web-tools");
-        serverInfoBean2.setServerPath("/opt/web_app/web_tools");
-        list.add(serverInfoBean2);
+        List<ServerInfoBean> list = autoRemoteDao.queryMyselfList();
+        if(list!=null&&list.size()>0){
+            String tempPathDir = tempPath+File.separator+ UUID.randomUUID().toString()+File.separator;
+            File tempDirectory = new File(tempPathDir);
+            tempDirectory.mkdirs();
+            String tempFilePath = tempPathDir + multipartFile.getOriginalFilename();
+            File tempFile = new File(tempFilePath);
 
-        String tempPathDir = tempPath+File.separator+ UUID.randomUUID().toString()+File.separator;
-        File tempDirectory = new File(tempPathDir);
-        tempDirectory.mkdirs();
-        String tempFilePath = tempPathDir + multipartFile.getOriginalFilename();
-        File tempFile = new File(tempFilePath);
-
-        try {
-            //保存临时文件
-            multipartFile.transferTo(tempFile);
-        } catch (IOException e) {
-            String message = "写临时文件出错! tempFilePath:"+tempFilePath;
-            logger.error(message,e);
-            throw new IOException(message,e);
-        }
-
-        //后续扩展为多个机器,再改造，目前为一个机器
-        for (ServerInfoBean serverInfoBean : list) {
-            String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/serverUp";
             try {
-                //设置HTTP头信息
-                HttpHeaders headers = new HttpHeaders();
-                headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-                headers.add("Content-Disposition", "filename=\"" + multipartFile.getOriginalFilename() + "\"");
-                //HTTP参数设置
-                MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
-                params.add("file", new FileSystemResource(tempFilePath));
-                HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-                //返回结果
-                String responseBody = response.getBody();
-                logger.info("sendRemoteFile,URL:"+url+",responseBody:"+responseBody);
-                map.put(serverInfoBean.getId()+"",JSON.parse(responseBody));
-            } catch (Exception e) {
-                String message = "发送文件到远程服务节点失败! URL:"+url+","+e.getMessage();
+                //保存临时文件
+                multipartFile.transferTo(tempFile);
+            } catch (IOException e) {
+                String message = "写临时文件出错! tempFilePath:"+tempFilePath;
                 logger.error(message,e);
-                map.put(serverInfoBean.getId()+"",message);
+                throw new IOException(message,e);
             }
-        }
-        //删除临时文件夹
-        FileUtils.deleteDirectory(tempDirectory);
-        return map;
-    }
 
-    /**
-     * 发送文件到远程服务器
-     * @param url
-     * @param multipartFile
-     * @param tempPath
-     * @return
-     * @throws Exception
-     */
-    public String sendFileToRemote(String url, MultipartFile multipartFile, String tempPath)throws Exception{
-        String tempFilePath = tempPath + File.separator + multipartFile.getOriginalFilename();
-        File tempFile = new File(tempFilePath);
-        //保存临时文件
-        multipartFile.transferTo(tempFile);
-        //设置HTTP头信息
-        HttpHeaders headers = new HttpHeaders();
-        headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-        headers.add("Content-Disposition", "filename=\"" + multipartFile.getOriginalFilename() + "\"");
-        //HTTP参数设置
-        MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
-        params.add("file", new FileSystemResource(tempFilePath));
-        HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-        ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-        try {
-            //删除临时文件
-            tempFile.delete();
-        } catch (Exception e) {
-            logger.error("删除临时文件失败! "+tempFilePath+" "+e.getMessage(),e);
+            //后续扩展为多个机器,再改造，目前为一个机器
+            for (ServerInfoBean serverInfoBean : list) {
+                String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/serverUp";
+                try {
+                    //设置HTTP头信息
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+                    headers.add("Content-Disposition", "filename=\"" + multipartFile.getOriginalFilename() + "\"");
+                    //HTTP参数设置
+                    MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
+                    params.add("file", new FileSystemResource(tempFilePath));
+                    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+                    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                    //返回结果
+                    String responseBody = response.getBody();
+                    logger.info("sendRemoteFile,URL:"+url+",responseBody:"+responseBody);
+                    map.put(serverInfoBean.getId()+"",JSON.parse(responseBody));
+                } catch (Exception e) {
+                    String message = "发送文件到远程服务节点失败! URL:"+url+","+e.getMessage();
+                    logger.error(message,e);
+                    map.put(serverInfoBean.getId()+"",message);
+                }
+            }
+            //删除临时文件夹
+            FileUtils.deleteDirectory(tempDirectory);
+        }else {
+            map.put("bak","DB没有web-autoremote服务部署节点");
         }
-        //返回结果
-        String jsonStr = response.getBody();
-        logger.info("request URL:" + url +" Return:" + jsonStr);
-        return jsonStr;
+        return map;
     }
 
     /**

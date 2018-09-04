@@ -75,7 +75,7 @@ public final class CmdToolkit {
      * @param active 环境
      */
     public static void setupServer(String active)throws IOException{
-        String bashCommand = "nohup bash setup.sh "+active+" &";
+        String bashCommand = "nohup bash web-autoremote-setup.sh "+active+"  > ../web-autoremote-setup.log 2>&1 &";
         CmdToolkit.execShell(bashCommand);
     }
 

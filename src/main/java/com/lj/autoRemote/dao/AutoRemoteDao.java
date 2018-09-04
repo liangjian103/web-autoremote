@@ -62,4 +62,24 @@ public class AutoRemoteDao {
         });
     }
 
+    /**
+     * 查询本程序部署列表
+     * @return
+     * @throws Exception
+     */
+    public List<ServerInfoBean> queryMyselfList(){
+        String sql = "select * from tb_server where serverName='web-autoremote'";
+        return jdbcTemplateForSqlLite.query(sql,new RowMapper<ServerInfoBean>(){
+            @Override
+            public ServerInfoBean mapRow(ResultSet rs, int rowNum) throws SQLException {
+                ServerInfoBean serverInfoBean = new ServerInfoBean();
+                serverInfoBean.setId(rs.getInt("id"));
+                serverInfoBean.setIp(rs.getString("ip"));
+                serverInfoBean.setServerName(rs.getString("serverName"));
+                serverInfoBean.setServerPath(rs.getString("serverPath"));
+                return serverInfoBean;
+            }
+        });
+    }
+
 }
