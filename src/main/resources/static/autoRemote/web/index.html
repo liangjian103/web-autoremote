@@ -12,6 +12,23 @@
 <script>
     layui.use(['table','element'], function(){
         var table = layui.table;
+        table.render({
+            elem:'#demo'
+            ,id:'nodeData'
+            , url: '/autoRemote/apis/queryServerInfoList'
+            , cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+            , cols: [[
+                {type:'checkbox',fixed: 'left'}
+                ,{field:'id', width:50, sort: true,title:'ID'}
+                ,{field:'ip', width:120, sort: true, edit: 'text',title:'IP'}
+                ,{field:'serverName', edit:'text', minWidth: 100,width:150,title:'服务名称'}
+                ,{field:'serverPath', edit:'text', minWidth: 200,title:'服务路径'}
+                ,{field:'state', minWidth: 100,title:'运行状态'}
+                ,{fixed:'right', width:300, align:'center', toolbar: '#barDemo',title:'操作'}
+            ]]
+            ,request:{pageName: 'page',limitName: 'limit'}
+            ,response:{statusName:'state',statusCode:'1001',dataName:'result'}
+        });
 
         //监听单元格编辑
         table.on('edit(nodeListTable)', function(obj){
@@ -58,14 +75,34 @@
                         };
                         $.post("/autoRemote/apis/queryServerRunState",param,
 						function(rs,status){
-                            //TODO 没有找到layui 如何修改数据表中的数据
                             console.log(rs)
-							var obj = eval("(" + rs + ")");
-							if(obj.state=='1001'){
-                                table.checkStatus('nodeData').data[i].state=(obj.result==''||obj.result==null)?"未启动":"启动("+obj.result+")";
-							}else{
-                                table.checkStatus('nodeData').data[i].state=obj.bak;
-							}
+                            var obj = eval("(" + rs + ")");
+                            if(obj.state=='1001'){
+                                data[i].state=(obj.result==''||obj.result==null)?"未启动":"启动("+obj.result+")";
+                            }else{
+                                data[i].serverName=obj.bak;
+                                //TODO 没有找到layui 如何修改数据表中的数据
+                                layer.alert(JSON.stringify(data[i].serverName));
+                                // layer.alert(JSON.stringify(obj.bak));
+                                // table.render({
+                                //     elem:'#demo'
+                                //     ,id:'nodeData'
+                                //     , cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
+                                //     , cols: [[
+                                //         {type:'checkbox',fixed: 'left'}
+                                //         ,{field:'id', width:50, sort: true,title:'ID'}
+                                //         ,{field:'ip', width:120, sort: true, edit: 'text',title:'IP'}
+                                //         ,{field:'serverName', edit:'text', minWidth: 100,width:150,title:'服务名称'}
+                                //         ,{field:'serverPath', edit:'text', minWidth: 200,title:'服务路径'}
+                                //         ,{field:'state', minWidth: 100,title:'运行状态'}
+                                //         ,{fixed:'right', width:300, align:'center', toolbar: '#barDemo',title:'操作'}
+                                //     ]]
+                                //     ,request:{pageName: 'page',limitName: 'limit'}
+                                //     ,response:{statusName:'state',statusCode:'1001',dataName:'result'}
+                                //     ,result:data[i]
+                                //     ,even: true
+                                // });
+                            }
 						});
 				}
             }
@@ -109,19 +146,7 @@
 	</li>
 </ul>
 
-<table class="layui-table" lay-filter="nodeListTable" lay-data="{id:'nodeData',url:'/autoRemote/apis/queryServerInfoList',request:{pageName: 'page',limitName: 'limit'},response:{statusName:'state',statusCode:'1001',dataName:'result'} }">
-	<thead>
-	<tr>
-		<th lay-data="{type:'checkbox',fixed: 'left'}"></th>
-		<th lay-data="{field:'id', width:50, sort: true}">ID</th>
-		<th lay-data="{field:'ip', width:120, sort: true, edit: 'text'}">IP</th>
-		<th lay-data="{field:'serverName', edit:'text', minWidth: 100,width:150}">服务名称</th>
-		<th lay-data="{field:'serverPath', edit:'text', minWidth: 200}">服务路径</th>
-		<th lay-data="{field:'state', minWidth: 100}">运行状态</th>
-		<th lay-data="{fixed: 'right', width:300, align:'center', toolbar: '#barDemo'}">操作</th>
-	</tr>
-	</thead>
-</table>
+<table class="layui-hide" id="demo"></table>
 
 <script type="text/html" id="barDemo">
 	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="reboot">重启</a>
