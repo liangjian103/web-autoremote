@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+	<title>节点管理</title>
+	<link rel="stylesheet" href="layui/css/layui.css">
+</head>
+<body>
+
+<script src="layui/layui.js"></script>
+<script>
+    layui.use(['table','element'], function(){
+        var table = layui.table;
+
+        //监听单元格编辑
+        table.on('edit(nodeListTable)', function(obj){
+            var value = obj.value //得到修改后的值
+                ,data = obj.data //得到所在行所有键值
+                ,field = obj.field; //得到字段
+            layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+        });
+
+        //监听表格复选框选择
+        table.on('checkbox(nodeListTable)', function(obj){
+            console.log(obj)
+        });
+        //监听工具条
+        table.on('tool(nodeListTable)', function(obj){
+            var data = obj.data;
+            if(obj.event === 'reboot'){
+                layer.confirm(data.ip+','+data.serverName + ' 的重启操作', function(index){
+                    layer.msg(data.ip+','+data.serverName + ' 的重启操作执行');
+                });
+            } else if(obj.event === 'del'){
+                layer.confirm('真的删除行么', function(index){
+                    obj.del();
+                    layer.close(index);
+                });
+            } else if(obj.event === 'save'){
+                layer.alert('保存编辑行：<br>'+ JSON.stringify(data))
+            }else if(obj.event === 'asSave'){
+                layer.alert('另存行：<br>'+ JSON.stringify(data))
+            }
+        });
+
+        var $ = layui.$, active = {
+            queryServerState: function(){ //获取选中数据
+                var checkStatus = table.checkStatus('nodeData')
+                    ,data = checkStatus.data;
+                // layer.alert(JSON.stringify(data));
+				for(var i in data){
+                        param = {
+                            id:data[i].id,
+                            ip:data[i].ip,
+                            serverName:data[i].serverName,
+                            serverPath:data[i].serverPath
+                        };
+                        $.post("/autoRemote/apis/queryServerRunState",param,
+						function(rs,status){
+                            //TODO 没有找到layui 如何修改数据表中的数据
+                            console.log(rs)
+							var obj = eval("(" + rs + ")");
+							if(obj.state=='1001'){
+                                table.checkStatus('nodeData').data[i].state=(obj.result==''||obj.result==null)?"未启动":"启动("+obj.result+")";
+							}else{
+                                table.checkStatus('nodeData').data[i].state=obj.bak;
+							}
+						});
+				}
+            }
+            ,getCheckData: function(){ //获取选中数据
+                var checkStatus = table.checkStatus('nodeData')
+                    ,data = checkStatus.data;
+                layer.alert(JSON.stringify(data));
+            }
+            ,getCheckLength: function(){ //获取选中数目
+                var checkStatus = table.checkStatus('nodeData')
+                    ,data = checkStatus.data;
+                layer.msg('选中了：'+ data.length + ' 个');
+            }
+            ,isAll: function(){ //验证是否全选
+                var checkStatus = table.checkStatus('nodeData');
+                layer.msg(checkStatus.isAll ? '全选': '未全选')
+            }
+        };
+
+        $('.demoTable .layui-btn').on('click', function(){
+            var type = $(this).data('type');
+            active[type] ? active[type].call(this) : '';
+        });
+
+    });
+</script>
+
+<!-- 你的HTML代码 -->
+<ul class="layui-nav">
+	<li class="layui-nav-item layui-anim-rotate">
+		<a href="javascript:;">亮剑-控制台</a>
+	</li>
+	<li class="layui-nav-item">
+		<a href="javascript:;">节点管理<span class="layui-badge-dot"></span></a>
+	</li>
+	<li class="layui-nav-item">
+		<a href="javascript:;">部署管理</a>
+	</li>
+	<li class="layui-nav-item" lay-unselect="">
+		<a href="javascript:;">监控管理</a>
+	</li>
+</ul>
+
+<table class="layui-table" lay-filter="nodeListTable" lay-data="{id:'nodeData',url:'/autoRemote/apis/queryServerInfoList',request:{pageName: 'page',limitName: 'limit'},response:{statusName:'state',statusCode:'1001',dataName:'result'} }">
+	<thead>
+	<tr>
+		<th lay-data="{type:'checkbox',fixed: 'left'}"></th>
+		<th lay-data="{field:'id', width:50, sort: true}">ID</th>
+		<th lay-data="{field:'ip', width:120, sort: true, edit: 'text'}">IP</th>
+		<th lay-data="{field:'serverName', edit:'text', minWidth: 100,width:150}">服务名称</th>
+		<th lay-data="{field:'serverPath', edit:'text', minWidth: 200}">服务路径</th>
+		<th lay-data="{field:'state', minWidth: 100}">运行状态</th>
+		<th lay-data="{fixed: 'right', width:300, align:'center', toolbar: '#barDemo'}">操作</th>
+	</tr>
+	</thead>
+</table>
+
+<script type="text/html" id="barDemo">
+	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="reboot">重启</a>
+	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="upPackage">升级</a>
+	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="save">保存</a>
+	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="asSave">另存</a>
+	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="del">删除</a>
+</script>
+
+<div class="layui-btn-group demoTable">
+	<button class="layui-btn layui-btn-radius layui-btn-primary" data-type="queryServerState">查看各节点运行状态</button>
+	<button class="layui-btn layui-btn-radius layui-btn-primary">上传新程序</button>
+	<button class="layui-btn layui-btn-radius layui-btn-primary">全部升级</button>
+	<button class="layui-btn layui-btn-radius layui-btn-primary">全部重启</button>
+	<button class="layui-btn layui-btn-radius layui-btn-primary">同步数据库</button>
+	<button class="layui-btn layui-btn-radius layui-btn-primary" data-type="getCheckData">获取选中行数据</button>
+	<button class="layui-btn layui-btn-radius layui-btn-primary" data-type="getCheckLength">获取选中数目</button>
+	<button class="layui-btn layui-btn-radius layui-btn-primary" data-type="isAll">验证是否全选</button>
+</div>
+
+
+</body>
+</html>
