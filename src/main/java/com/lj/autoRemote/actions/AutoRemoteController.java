@@ -36,6 +36,9 @@ public class AutoRemoteController {
 	@Value("${server.upPath}")
 	String upPath;
 
+    @Value("${spring.datasource.sqllite.url}")
+    private String dbUrl;
+
 	/** 保存备案表信息 */
 	@RequestMapping(value = "/saveServerInfo", method = { RequestMethod.POST, RequestMethod.GET })
 	public void saveServerInfo(HttpServletRequest request, HttpServletResponse response, ServerInfoBean serverInfoBean) {
@@ -156,6 +159,28 @@ public class AutoRemoteController {
 	}
 
 	/**
+	 * 重启服务（远程）
+	 */
+	@RequestMapping(value = "/rebootServer", method = {RequestMethod.POST, RequestMethod.GET})
+	public void remoteRebootServer(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		String returnStr = "";
+		try {
+			Map<String, Object> map = autoRemoteService.remoteRebootServer();
+			map.put("state", "1001");
+			map.put("bak", "远程服务重启请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "9001");
+			map.put("bak", "服务重启请求已发送。" + e.getMessage());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+		}
+	}
+
+	/**
 	 * 重启服务（本地）
 	 */
 	@RequestMapping(value = "/local/rebootServer", method = {RequestMethod.POST, RequestMethod.GET})
@@ -222,6 +247,57 @@ public class AutoRemoteController {
 			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
 		}
 	}
+
+	/**
+	 * 同步数据库到所有监控节点（远程）
+	 */
+	@RequestMapping(value = "/synDB", method = {RequestMethod.POST, RequestMethod.GET})
+	public void remoteSynDB(HttpServletRequest request, HttpServletResponse response) throws Exception {
+		String returnStr = "";
+		try {
+			Map<String, Object> map = autoRemoteService.remoteSynDB();
+			map.put("state", "1001");
+			map.put("bak", "更新程序包请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "9001");
+			map.put("bak", "更新程序包请求已发送。" + e.getMessage());
+			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+		}
+	}
+
+    /**
+     * 保存同步的DB文件到本地
+     */
+    @RequestMapping(value = "/local/synDB", method = {RequestMethod.POST, RequestMethod.GET})
+    public void synDB(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) throws Exception {
+        String returnStr = "";
+        try {
+            //jdbc:sqlite:/home/yanfa_ro/autoRemoteSqlite.db
+            String dbFilePathName = dbUrl.split(":")[2];
+            String upPath = dbFilePathName.substring(0,dbFilePathName.lastIndexOf(File.separator));
+            new File(upPath).mkdirs();
+            //保存到本地
+            String filePathName = dbFilePathName;
+            file.transferTo(new File(filePathName));
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("state", "1001");
+            map.put("bak", "保存同步的DB文件到本地成功! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr()+", Path:"+filePathName);
+            returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+            retrunData(response, returnStr);
+        } catch (Exception e) {
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put("state", "9001");
+            map.put("bak", "保存同步的DB文件到本地异常。"+",Host:"+request.getLocalAddr() + e.getMessage());
+            returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+            retrunData(response, returnStr);
+            logger.error("AutoRemoteController /local/synDB is ERROR!" + e.getMessage(), e);
+        }
+    }
 
 	/**
 	 * 返回结果

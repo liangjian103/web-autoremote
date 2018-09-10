@@ -17,6 +17,8 @@ echo "pid:$pid"
 
 if [ $pid != '' ]
 then
+    echo "sleep 3s kill..."
+    sleep 3s
     kill -9 $pid
     echo "kill -9 $pid"
 fi
