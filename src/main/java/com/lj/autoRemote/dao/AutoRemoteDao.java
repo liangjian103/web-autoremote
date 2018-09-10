@@ -68,7 +68,7 @@ public class AutoRemoteDao {
      * @throws Exception
      */
     public List<ServerInfoBean> queryMyselfList(){
-        String sql = "select * from tb_server where serverName='web-autoremote";
+        String sql = "select * from tb_server where serverName='web-autoremote'";
         return jdbcTemplateForSqlLite.query(sql,new RowMapper<ServerInfoBean>(){
             @Override
             public ServerInfoBean mapRow(ResultSet rs, int rowNum) throws SQLException {

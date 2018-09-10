@@ -183,17 +183,27 @@ public class AutoRemoteController {
 	 * 重启服务（本地）
 	 */
 	@RequestMapping(value = "/local/rebootServer", method = {RequestMethod.POST, RequestMethod.GET})
-	public void rebootServer(HttpServletRequest request, HttpServletResponse response) throws Exception {
-		String returnStr = "";
-		try {
-			autoRemoteService.rebootServer();
-			Map<String, Object> map = new HashMap<String, Object>();
-			map.put("state", "1001");
-			map.put("bak", "服务重启请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
+	public void rebootServer(final HttpServletRequest request, HttpServletResponse response) throws Exception {
+        String returnStr = "";
+        final Map<String, Object> map = new HashMap<String, Object>();
+        try {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try{
+                        autoRemoteService.rebootServer();
+                    }catch (Exception e){
+                        map.put("state", "9001");
+                        map.put("bak", "服务重启请求已发送。" + e.getMessage());
+                        logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+                    }
+                }
+            }).start();
+            map.put("state", "1001");
+            map.put("bak", "服务重启请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
-			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "9001");
 			map.put("bak", "服务重启请求已发送。" + e.getMessage());
 			returnStr = JsonUtil.toCompatibleJSONString(map);

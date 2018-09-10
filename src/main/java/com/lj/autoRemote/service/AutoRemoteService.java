@@ -17,7 +17,11 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.CountDownLatch;
 
 /** 数据修复业务类  */
 @Service
@@ -150,14 +154,14 @@ public class AutoRemoteService {
     /**
      * 向远程服务传输程序包
      */
-    public Map<String,Object> serverUp(MultipartFile multipartFile)throws IOException{
-        Map<String,Object> map = new HashMap<String, Object>();
+    public Map<String,Object> serverUp(MultipartFile multipartFile)throws Exception{
+        final Map<String,Object> map = new HashMap<String, Object>();
         List<ServerInfoBean> list = autoRemoteDao.queryMyselfList();
         if(list!=null&&list.size()>0){
             String tempPathDir = tempPath+File.separator+ UUID.randomUUID().toString()+File.separator;
             File tempDirectory = new File(tempPathDir);
             tempDirectory.mkdirs();
-            String tempFilePath = tempPathDir + multipartFile.getOriginalFilename();
+            final String tempFilePath = tempPathDir + multipartFile.getOriginalFilename();
             File tempFile = new File(tempFilePath);
 
             try {
@@ -169,28 +173,37 @@ public class AutoRemoteService {
                 throw new IOException(message,e);
             }
 
-            for (ServerInfoBean serverInfoBean : list) {
-                String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/serverUp";
-                try {
-                    //设置HTTP头信息
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-                    headers.add("Content-Disposition", "filename=\"" + multipartFile.getOriginalFilename() + "\"");
-                    //HTTP参数设置
-                    MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
-                    params.add("file", new FileSystemResource(tempFilePath));
-                    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-                    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-                    //返回结果
-                    String responseBody = response.getBody();
-                    logger.info("sendRemoteFile,URL:"+url+",responseBody:"+responseBody);
-                    map.put(serverInfoBean.getId()+"",JSON.parse(responseBody));
-                } catch (Exception e) {
-                    String message = "发送文件到远程服务节点失败! URL:"+url+","+e.getMessage();
-                    logger.error(message,e);
-                    map.put(serverInfoBean.getId()+"",message);
-                }
+            final CountDownLatch latch = new CountDownLatch(list.size());// 同步辅助类
+            for (final ServerInfoBean serverInfoBean : list) {
+                final String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/serverUp";
+                new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try {
+                            FileSystemResource fileSystemResource = new FileSystemResource(tempFilePath);
+                            //设置HTTP头信息
+                            HttpHeaders headers = new HttpHeaders();
+                            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+                            headers.add("Content-Disposition", "filename=\"" + fileSystemResource.getFilename() + "\"");
+                            //HTTP参数设置
+                            MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
+                            params.add("file", fileSystemResource);
+                            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+                            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                            //返回结果
+                            String responseBody = response.getBody();
+                            logger.info("sendRemoteFile,URL:"+url+",responseBody:"+responseBody);
+                            map.put(serverInfoBean.getId()+"",JSON.parse(responseBody));
+                        } catch (Exception e) {
+                            String message = "发送文件到远程服务节点失败! URL:"+url+","+e.getMessage();
+                            logger.error(message,e);
+                            map.put(serverInfoBean.getId()+"",message);
+                        }
+                        latch.countDown();// 计数减一
+                    }
+                }).start();
             }
+            latch.await();// 等待子线程结束
             //删除临时文件夹
             FileUtils.deleteDirectory(tempDirectory);
         }else {
@@ -215,34 +228,42 @@ public class AutoRemoteService {
      * @throws Exception
      */
     public Map<String,Object> remoteRebootServer()throws Exception{
-        Map<String,Object> map = new HashMap<String, Object>();
+        final Map<String,Object> map = new HashMap<String, Object>();
         List<ServerInfoBean> list = autoRemoteDao.queryMyselfList();
         if(list!=null&&list.size()>0){
-            for (ServerInfoBean serverInfoBean : list) {
-                try{
-                    String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/rebootServer";
-                    HttpHeaders headers = new HttpHeaders();
-                    //  请勿轻易改变此提交方式，大部分的情况下，提交方式都是表单提交
-                    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-                    //  封装参数，千万不要替换为Map与HashMap，否则参数无法传递
-                    MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
-                    //  也支持中文
-                    params.add("id", serverInfoBean.getId() + "");
-                    params.add("ip", serverInfoBean.getIp());
-                    params.add("serverName", serverInfoBean.getServerName());
-                    params.add("serverPath", serverInfoBean.getServerPath());
-                    HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
-                    //  执行HTTP请求
-                    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-                    //  输出结果
-                    String jsonStr = response.getBody();
-                    logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Return:" + jsonStr);
-                    map.put(serverInfoBean.getId()+"",JSON.parse(jsonStr));
-                }catch (Exception e){
-                    map.put(serverInfoBean.getId()+"",serverInfoBean.getIp()+","+e.getMessage());
-                    logger.error("remoteRebootServer is ERROR! IP:"+serverInfoBean.getIp(),e);
-                }
+            final CountDownLatch latch = new CountDownLatch(list.size());// 同步辅助类
+            for (final ServerInfoBean serverInfoBean : list) {
+                final String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/rebootServer";
+                new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try{
+                            HttpHeaders headers = new HttpHeaders();
+                            //  请勿轻易改变此提交方式，大部分的情况下，提交方式都是表单提交
+                            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+                            //  封装参数，千万不要替换为Map与HashMap，否则参数无法传递
+                            MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+                            //  也支持中文
+                            params.add("id", serverInfoBean.getId() + "");
+                            params.add("ip", serverInfoBean.getIp());
+                            params.add("serverName", serverInfoBean.getServerName());
+                            params.add("serverPath", serverInfoBean.getServerPath());
+                            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
+                            //  执行HTTP请求
+                            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                            //  输出结果
+                            String jsonStr = response.getBody();
+                            logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Return:" + jsonStr);
+                            map.put(serverInfoBean.getId()+"",JSON.parse(jsonStr));
+                        }catch (Exception e){
+                            map.put(serverInfoBean.getId()+"",serverInfoBean.getIp()+","+e.getMessage());
+                            logger.error("remoteRebootServer is ERROR! IP:"+serverInfoBean.getIp(),e);
+                        }
+                        latch.countDown();// 计数减一
+                    }
+                }).start();
             }
+            latch.await();// 等待子线程结束
         }else{
             map.put("info","DB没有web-autoremote服务部署节点");
         }
@@ -265,34 +286,42 @@ public class AutoRemoteService {
      * @throws Exception
      */
     public Map<String,Object> remoteSetupServer()throws Exception{
-        Map<String,Object> map = new HashMap<String, Object>();
+        final Map<String,Object> map = new HashMap<String, Object>();
         List<ServerInfoBean> list = autoRemoteDao.queryMyselfList();
         if(list!=null&&list.size()>0){
-            for (ServerInfoBean serverInfoBean : list) {
-                try{
-                    String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/setupServer";
-                    HttpHeaders headers = new HttpHeaders();
-                    //  请勿轻易改变此提交方式，大部分的情况下，提交方式都是表单提交
-                    headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
-                    //  封装参数，千万不要替换为Map与HashMap，否则参数无法传递
-                    MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
-                    //  也支持中文
-                    params.add("id", serverInfoBean.getId() + "");
-                    params.add("ip", serverInfoBean.getIp());
-                    params.add("serverName", serverInfoBean.getServerName());
-                    params.add("serverPath", serverInfoBean.getServerPath());
-                    HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
-                    //  执行HTTP请求
-                    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-                    //  输出结果
-                    String jsonStr = response.getBody();
-                    logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Return:" + jsonStr);
-                    map.put(serverInfoBean.getId()+"",JSON.parse(jsonStr));
-                }catch (Exception e){
-                    map.put(serverInfoBean.getId()+"",serverInfoBean.getIp()+","+e.getMessage());
-                    logger.error("remoteSetupServer is ERROR! IP:"+serverInfoBean.getIp(),e);
-                }
+            final CountDownLatch latch = new CountDownLatch(list.size());// 同步辅助类
+            for (final ServerInfoBean serverInfoBean : list) {
+                final String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/setupServer";
+                new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try{
+                            HttpHeaders headers = new HttpHeaders();
+                            //  请勿轻易改变此提交方式，大部分的情况下，提交方式都是表单提交
+                            headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+                            //  封装参数，千万不要替换为Map与HashMap，否则参数无法传递
+                            MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+                            //  也支持中文
+                            params.add("id", serverInfoBean.getId() + "");
+                            params.add("ip", serverInfoBean.getIp());
+                            params.add("serverName", serverInfoBean.getServerName());
+                            params.add("serverPath", serverInfoBean.getServerPath());
+                            HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
+                            //  执行HTTP请求
+                            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                            //  输出结果
+                            String jsonStr = response.getBody();
+                            logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Return:" + jsonStr);
+                            map.put(serverInfoBean.getId()+"",JSON.parse(jsonStr));
+                        }catch (Exception e){
+                            map.put(serverInfoBean.getId()+"",serverInfoBean.getIp()+","+e.getMessage());
+                            logger.error("remoteSetupServer is ERROR! IP:"+serverInfoBean.getIp(),e);
+                        }
+                        latch.countDown();// 计数减一
+                    }
+                }).start();
             }
+            latch.await();// 等待子线程结束
         }else{
             map.put("info","DB没有web-autoremote服务部署节点");
         }
@@ -305,34 +334,42 @@ public class AutoRemoteService {
      * @throws Exception
      */
     public Map<String,Object> remoteSynDB()throws Exception{
-        Map<String,Object> map = new HashMap<String, Object>();
+        final Map<String,Object> map = new HashMap<String, Object>();
         List<ServerInfoBean> list = autoRemoteDao.queryMyselfList();
         //jdbc:sqlite:/home/yanfa_ro/autoRemoteSqlite.db
-        String dbFilePath = dbUrl.split(":")[2];
-        FileSystemResource fileSystemResource = new FileSystemResource(dbFilePath);
+        final String dbFilePath = dbUrl.split(":")[2];
         if(list!=null&&list.size()>0){
-            for (ServerInfoBean serverInfoBean : list) {
-                String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/synDB";
-                try {
-                    //设置HTTP头信息
-                    HttpHeaders headers = new HttpHeaders();
-                    headers.setContentType(MediaType.MULTIPART_FORM_DATA);
-                    headers.add("Content-Disposition", "filename=\"" + fileSystemResource.getFilename() + "\"");
-                    //HTTP参数设置
-                    MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
-                    params.add("file", fileSystemResource);
-                    HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
-                    ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
-                    //返回结果
-                    String responseBody = response.getBody();
-                    logger.info("sendRemoteDBFile,URL:"+url+",responseBody:"+responseBody);
-                    map.put(serverInfoBean.getId()+"",JSON.parse(responseBody));
-                } catch (Exception e) {
-                    String message = "发送DB文件到远程服务节点失败! URL:"+url+","+e.getMessage();
-                    logger.error(message,e);
-                    map.put(serverInfoBean.getId()+"",message);
-                }
+            final CountDownLatch latch = new CountDownLatch(list.size());// 同步辅助类
+            for (final ServerInfoBean serverInfoBean : list) {
+                final String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/synDB";
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            FileSystemResource fileSystemResource = new FileSystemResource(dbFilePath);
+                            //设置HTTP头信息
+                            HttpHeaders headers = new HttpHeaders();
+                            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+                            headers.add("Content-Disposition", "filename=\"" + fileSystemResource.getFilename() + "\"");
+                            //HTTP参数设置
+                            MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
+                            params.add("file", fileSystemResource);
+                            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+                            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                            //返回结果
+                            String responseBody = response.getBody();
+                            logger.info("sendRemoteDBFile,URL:"+url+",responseBody:"+responseBody);
+                            map.put(serverInfoBean.getId()+"",JSON.parse(responseBody));
+                        } catch (Exception e) {
+                            String message = "发送DB文件到远程服务节点失败! URL:"+url+","+e.getMessage();
+                            logger.error(message,e);
+                            map.put(serverInfoBean.getId()+"",message);
+                        }
+                        latch.countDown();// 计数减一
+                    }
+                }).start();
             }
+            latch.await();// 等待子线程结束
         }else{
             map.put("info","DB没有web-autoremote服务部署节点");
         }
