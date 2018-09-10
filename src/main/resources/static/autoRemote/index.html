@@ -47,10 +47,7 @@
                     buffer.append("<td><input name=\"serverName\" type=\"text\" value=\""+serverInfo.serverName+"\"></td>");
                     buffer.append("<td><input name=\"serverPath\" type=\"text\" value=\""+serverInfo.serverPath+"\"></td>");
                     buffer.append("<td><input name=\"runState\" type=\"text\" value=\"\"></td>");
-                    buffer.append("<td><input name=\"startCmd\" type=\"text\" value=\"\"></td>");
-                    buffer.append("<td><input name=\"stopCmd\" type=\"text\" value=\"\"></td>");
-                    buffer.append("<td><input name=\"logPath\" type=\"text\" value=\"\"></td>");
-                    buffer.append("<td><input name=\"grepName\" type=\"text\" value=\"\"></td>");
+                    buffer.append("<td><input name=\"commandStart\" type=\"text\" value=\"\"></td>");
                     buffer.append("<td><input name=\"save\" type=\"button\" value=\"另存\" onclick=\"save(this);\" >" +
                         "<input name=\"update\" type=\"button\" value=\"保存\" onclick=\"update(this);\" >" +
                         "<input name=\"queryServerRunState\" type=\"button\" value=\"查看运行状态\" onclick=\"queryServerRunState(this);\" >" +
@@ -128,10 +125,7 @@
         buffer.append("<td><input name=\"serverName\" type=\"text\" value=\"\"></td>");
         buffer.append("<td><input name=\"serverPath\" type=\"text\" value=\"\"></td>");
         buffer.append("<td><input name=\"runState\" type=\"text\" value=\"\"></td>");
-        buffer.append("<td><input name=\"startCmd\" type=\"text\" value=\"\"></td>");
-        buffer.append("<td><input name=\"stopCmd\" type=\"text\" value=\"\"></td>");
-        buffer.append("<td><input name=\"logPath\" type=\"text\" value=\"\"></td>");
-        buffer.append("<td><input name=\"grepName\" type=\"text\" value=\"\"></td>");
+        buffer.append("<td><input name=\"commandStart\" type=\"text\" value=\"\"></td>");
         buffer.append("<td><input name=\"save\" type=\"button\" value=\"添加\" onclick=\"save(this);\" ></td>");
         buffer.append("</tr>");
         $("#serverInfoTable").append(buffer.toString());
@@ -205,9 +199,6 @@
 			<td>部署路径</td>
 			<td>进程ID</td>
 			<td>启动命令</td>
-			<td>停止命令</td>
-			<td>日志路径</td>
-			<td>关键词</td>
 			<td>操作</td>
 		</tr>
 	</table>

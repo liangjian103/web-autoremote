@@ -15,18 +15,16 @@ cd $serverPath/web-autoremote
 pid=`ps -ef|grep "web-autoremote"|grep -v grep|grep -v PPID|grep -v tail|grep -v "web-autoremote-setup.sh"|awk '{print $2}'`
 echo "pid:$pid"
 
-if [ $pid != '' ]
-then
-    echo "sleep 3s kill..."
-    sleep 3s
-    kill -9 $pid
-    echo "kill -9 $pid"
-fi
+kill -9 $pid
+echo "kill -9 $pid"
+
+echo "sleep 2s ..."
+sleep 2s
 
 bash start.sh $1
 
-echo "sleep 5s ..."
-sleep 5s
+echo "sleep 1s ..."
+sleep 1s
 
 pid=`ps -ef|grep "web-autoremote"|grep -v grep|grep -v PPID|grep -v tail|grep -v "web-autoremote-setup.sh"|awk '{print $2}'`
 echo "rebootServer is OK! pid:$pid"

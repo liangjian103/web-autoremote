@@ -144,7 +144,7 @@ public class AutoRemoteController {
 			file.transferTo(new File(filePathName));
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "1001");
-			map.put("bak", "程序升级包上传成功! RemoteHost:"+request.getRemoteHost()+" Path:"+filePathName);
+			map.put("bak", "程序升级包上传成功! Host:"+request.getLocalAddr()+", RemoteHost:"+request.getRemoteHost()+" Path:"+filePathName);
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {

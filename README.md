@@ -1,8 +1,38 @@
-远程服务管控
+# 远程服务管控
 
 将该服务部署到多台服务器启动后，通过访问任意一台服务，可对其他所有部署了该节点的机器进行管控。
 
-准备完善：
-1、本服务自动部署更新升级
-2、自动上传程序包实现自动化部署运行
-3、指定需要监控的服务器日志关键词，定时监控并通知
+## 准备完善：
+1. 本服务自动部署更新升级(远程更新部署自身、远程重启自身)
+1. 自动上传程序包实现自动化部署运行
+1. 指定需要监控的服务器日志关键词，定时监控并通知
+
+---
+
+### 数据库脚本
+```
+create table tb_server_deploy
+(
+  id            integer not null
+    primary key
+  autoincrement,
+  ip            varchar not null,
+  serverName    varchar not null,
+  serverPath    varchar not null,
+  state         varchar,
+  command_start varchar,
+  seq           integer
+);
+
+create table tb_server_node
+(
+  id    integer
+    primary key
+  autoincrement,
+  ip    varchar,
+  state varchar
+);
+
+create unique index tb_server_node_ip_uindex
+  on tb_server_node (ip);
+```

@@ -1,7 +1,6 @@
 package com.lj.autoRemote.service;
 
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -27,6 +26,7 @@ public final class CmdToolkit {
         StringBuffer cmdout = new StringBuffer();
         log.info("执行命令：" + cmd);
         Process process = Runtime.getRuntime().exec(new String[] {"/bin/sh", "-c", cmd});     //执行一个系统命令
+//        Process process = Runtime.getRuntime().exec(cmd);     //执行一个系统命令
         InputStream fis = process.getInputStream();
         BufferedReader br = new BufferedReader(new InputStreamReader(fis));
         String line = null;
@@ -66,7 +66,7 @@ public final class CmdToolkit {
      * @param active 环境
      */
     public static void rebootServer(String active)throws IOException{
-        String bashCommand = "nohup bash rebootServer.sh "+active+" &";
+        String bashCommand = "nohup bash rebootServer.sh  "+active+"  > ../web-autoremote-reboot.log 2>&1 &";
         CmdToolkit.execShell(bashCommand);
     }
 
