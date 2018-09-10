@@ -3,7 +3,6 @@ package com.lj.autoRemote.service;
 import com.alibaba.fastjson.JSON;
 import com.lj.autoRemote.beans.ServerInfoBean;
 import com.lj.autoRemote.dao.AutoRemoteDao;
-import com.lj.utils.CtfoJsonUtil;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;

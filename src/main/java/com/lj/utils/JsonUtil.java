@@ -5,7 +5,7 @@ import com.alibaba.fastjson.serializer.JSONLibDataFormatSerializer;
 import com.alibaba.fastjson.serializer.SerializeConfig;
 import com.alibaba.fastjson.serializer.SerializerFeature;
 
-public class CtfoJsonUtil {
+public class JsonUtil {
 
 	private static final SerializeConfig CONFIG;
 	

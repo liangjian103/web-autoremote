@@ -2,8 +2,7 @@ package com.lj.autoRemote.actions;
 
 import com.lj.autoRemote.beans.ServerInfoBean;
 import com.lj.autoRemote.service.AutoRemoteService;
-import com.lj.utils.CtfoJsonUtil;
-import com.lj.utils.FileUtil;
+import com.lj.utils.JsonUtil;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -45,7 +44,7 @@ public class AutoRemoteController {
 		String returnStr = "";
 		try {
 			Map<String,String> map = autoRemoteService.saveServerInfo(serverInfoBean);
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			logger.error("AutoRemoteController saveServerInfo() is ERROR!"+e.getMessage(),e);
@@ -58,7 +57,7 @@ public class AutoRemoteController {
 		String returnStr = "";
 		try {
 			Map<String,String> map = autoRemoteService.updateServerInfo(serverInfoBean);
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			logger.error("AutoRemoteController updateServerInfo() is ERROR!"+e.getMessage(),e);
@@ -71,7 +70,7 @@ public class AutoRemoteController {
 		String returnStr = "";
 		try {
 			Map<String,Object> map = autoRemoteService.queryServerInfoList();
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			logger.error("AutoRemoteController queryServerInfoList() is ERROR!"+e.getMessage(),e);
@@ -85,13 +84,13 @@ public class AutoRemoteController {
 		String returnStr = "";
 		try {
 			Map<String,Object> map = autoRemoteService.queryServerRunState(serverInfoBean);
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String,Object> map = new HashMap<String,Object>();
 			map.put("state","9001");
 			map.put("bak","查询服务运行状况执行异常。 "+e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /local/queryServerRunState is ERROR!"+e.getMessage(),e);
 		}
@@ -108,7 +107,7 @@ public class AutoRemoteController {
 			Map<String,Object> map = new HashMap<String,Object>();
 			map.put("state","9001");
 			map.put("bak","请求远程服务异常,可能该服务未部署监控节点。 "+e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /queryServerRunState is ERROR!"+e.getMessage(),e);
 		}
@@ -120,13 +119,13 @@ public class AutoRemoteController {
 		String returnStr = "upload success";
 		try {
 			Map<String,Object> map = autoRemoteService.serverUp(file);
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String,Object> map = new HashMap<String,Object>();
 			map.put("state","9001");
 			map.put("bak","程序升级包上传异常。"+e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /serverUp is ERROR!"+e.getMessage(),e);
 		}
@@ -146,13 +145,13 @@ public class AutoRemoteController {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "1001");
 			map.put("bak", "程序升级包上传成功! RemoteHost:"+request.getRemoteHost()+" Path:"+filePathName);
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "9001");
 			map.put("bak", "程序升级包上传异常。" + e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /local/serverUp is ERROR!" + e.getMessage(), e);
 		}
@@ -168,13 +167,13 @@ public class AutoRemoteController {
 			Map<String, Object> map = autoRemoteService.remoteRebootServer();
 			map.put("state", "1001");
 			map.put("bak", "远程服务重启请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "9001");
 			map.put("bak", "服务重启请求已发送。" + e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
 		}
@@ -191,13 +190,13 @@ public class AutoRemoteController {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "1001");
 			map.put("bak", "服务重启请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "9001");
 			map.put("bak", "服务重启请求已发送。" + e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
 		}
@@ -214,13 +213,13 @@ public class AutoRemoteController {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "1001");
 			map.put("bak", "服务重启请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "9001");
 			map.put("bak", "服务重启请求已发送。" + e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
 		}
@@ -236,13 +235,13 @@ public class AutoRemoteController {
 			Map<String, Object> map = autoRemoteService.remoteSetupServer();
 			map.put("state", "1001");
 			map.put("bak", "更新程序包请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "9001");
 			map.put("bak", "更新程序包请求已发送。" + e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
 		}
@@ -258,13 +257,13 @@ public class AutoRemoteController {
 			Map<String, Object> map = autoRemoteService.remoteSynDB();
 			map.put("state", "1001");
 			map.put("bak", "更新程序包请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String, Object> map = new HashMap<String, Object>();
 			map.put("state", "9001");
 			map.put("bak", "更新程序包请求已发送。" + e.getMessage());
-			returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
 		}
@@ -287,13 +286,13 @@ public class AutoRemoteController {
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("state", "1001");
             map.put("bak", "保存同步的DB文件到本地成功! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr()+", Path:"+filePathName);
-            returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+            returnStr = JsonUtil.toCompatibleJSONString(map);
             retrunData(response, returnStr);
         } catch (Exception e) {
             Map<String, Object> map = new HashMap<String, Object>();
             map.put("state", "9001");
             map.put("bak", "保存同步的DB文件到本地异常。"+",Host:"+request.getLocalAddr() + e.getMessage());
-            returnStr = CtfoJsonUtil.toCompatibleJSONString(map);
+            returnStr = JsonUtil.toCompatibleJSONString(map);
             retrunData(response, returnStr);
             logger.error("AutoRemoteController /local/synDB is ERROR!" + e.getMessage(), e);
         }
