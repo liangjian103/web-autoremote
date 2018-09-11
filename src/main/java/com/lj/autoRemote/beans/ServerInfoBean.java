@@ -9,9 +9,10 @@ public class ServerInfoBean {
     private String ip;//IP
     private String serverName;//服务名称
     private String serverPath;//服务部署路径
-    private String state;//启动状态（1:已启动，2:未启动，3:待重启）
+    private String state;//启动状态（最后一次启动进程号）
     private String commandStart;//启动命令
     private Integer seq;//序号
+    private Long startTime;//启动时间
 
     public Integer getId() {
         return id;
@@ -69,6 +70,14 @@ public class ServerInfoBean {
         this.seq = seq;
     }
 
+    public Long getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(Long startTime) {
+        this.startTime = startTime;
+    }
+
     @Override
     public String toString() {
         return "ServerInfoBean{" +
@@ -79,6 +88,7 @@ public class ServerInfoBean {
                 ", state='" + state + '\'' +
                 ", commandStart='" + commandStart + '\'' +
                 ", seq=" + seq +
+                ", startTime=" + startTime +
                 '}';
     }
 }

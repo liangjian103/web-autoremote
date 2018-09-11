@@ -1,6 +1,8 @@
 package com.lj.main;
 
+import com.lj.autoRemote.service.AutoRemoteService;
 import org.apache.log4j.Logger;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
@@ -22,12 +24,15 @@ public class WebAutoRemoteMain implements CommandLineRunner {
     @Value("${server.port}")
     String port;
 
+    @Autowired
+    private AutoRemoteService autoRemoteService;
 
     @Override
     public void run(String... args) throws Exception {
         SimpleDateFormat sdft = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         String time = sdft.format(new Date());
         System.out.println(time+" spring.profiles.active:"+active+",port:"+port);
+        autoRemoteService.startServer();
         System.out.println(time+" WebAutoRemoteMain run is OK! ^_^");
     }
 

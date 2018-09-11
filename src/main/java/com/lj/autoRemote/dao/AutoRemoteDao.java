@@ -65,11 +65,33 @@ public class AutoRemoteDao {
     }
 
     /**
+     * 查询所有备案信息(按ID查询)
+     * @return
+     * @throws Exception
+     */
+    public ServerInfoBean queryServerInfoById(int id){
+        String sql = "select * from tb_server_deploy where id=?";
+        return jdbcTemplateForSqlLite.queryForObject(sql,new Object[]{id},new RowMapper<ServerInfoBean>(){
+            @Override
+            public ServerInfoBean mapRow(ResultSet rs, int rowNum) throws SQLException {
+                ServerInfoBean serverInfoBean = new ServerInfoBean();
+                serverInfoBean.setId(rs.getInt("id"));
+                serverInfoBean.setIp(rs.getString("ip"));
+                serverInfoBean.setServerName(rs.getString("serverName"));
+                serverInfoBean.setServerPath(rs.getString("serverPath"));
+                serverInfoBean.setState(rs.getString("state"));
+                serverInfoBean.setSeq(rs.getInt("seq"));
+                return serverInfoBean;
+            }
+        });
+    }
+
+    /**
      * 查询各节点信息
      * @return
      * @throws Exception
      */
-    public List<ServerInfoBean> queryMyselfList(){
+    public List<ServerInfoBean> queryNodeServerInfoList(){
         String sql = "select * from tb_server_node";
         return jdbcTemplateForSqlLite.query(sql,new RowMapper<ServerInfoBean>(){
             @Override
@@ -78,6 +100,27 @@ public class AutoRemoteDao {
                 serverInfoBean.setId(rs.getInt("id"));
                 serverInfoBean.setIp(rs.getString("ip"));
                 serverInfoBean.setState(rs.getString("state"));
+                serverInfoBean.setStartTime(rs.getLong("startTime"));
+                return serverInfoBean;
+            }
+        });
+    }
+
+    /**
+     * 查询各节点信息(按ID查询)
+     * @return
+     * @throws Exception
+     */
+    public ServerInfoBean queryNodeServerInfoById(int id){
+        String sql = "select * from tb_server_node where id=?";
+        return jdbcTemplateForSqlLite.queryForObject(sql,new Object[]{id},new RowMapper<ServerInfoBean>(){
+            @Override
+            public ServerInfoBean mapRow(ResultSet rs, int rowNum) throws SQLException {
+                ServerInfoBean serverInfoBean = new ServerInfoBean();
+                serverInfoBean.setId(rs.getInt("id"));
+                serverInfoBean.setIp(rs.getString("ip"));
+                serverInfoBean.setState(rs.getString("state"));
+                serverInfoBean.setStartTime(rs.getLong("startTime"));
                 return serverInfoBean;
             }
         });
@@ -88,7 +131,7 @@ public class AutoRemoteDao {
      * @param serverInfoBean
      * @throws Exception
      */
-    public void saveMyselfInfo(ServerInfoBean serverInfoBean) throws Exception{
+    public void saveNodeServerInfo(ServerInfoBean serverInfoBean){
         String sql = "insert into tb_server_node (ip,state) values (?,?) ";
         jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getState()});
     }
@@ -98,17 +141,24 @@ public class AutoRemoteDao {
      * @param serverInfoBean
      * @throws Exception
      */
-    public void updateMyselfInfo(ServerInfoBean serverInfoBean) throws Exception{
+    public void updateNodeServerInfo(ServerInfoBean serverInfoBean){
         String sql = "update tb_server_node set ip=?,state=? where id=? ";
         jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getState(),serverInfoBean.getId()});
     }
 
     /**
-     * 更新程序节点启动状态
+     * 更新程序节点启动状态(根据ID)
      */
-    public void updateMyselfInfo(int id,int state) {
-        String sql = "update tb_server_node state=? where id=? ";
-        jdbcTemplateForSqlLite.update(sql,new Object[]{state,id});
+    public void updateNodeServerInfo(int id, int state) {
+        String sql = "update tb_server_node set state=?,starttime=? where id=? ";
+        jdbcTemplateForSqlLite.update(sql,new Object[]{state+"",System.currentTimeMillis(),id});
+    }
+    /**
+     * 更新程序节点启动状态(根据IP)
+     */
+    public void updateMyselfInfoByIp(String ip,int state) {
+        String sql = "update tb_server_node set state=?,starttime=? where ip=? ";
+        jdbcTemplateForSqlLite.update(sql,new Object[]{state+"",System.currentTimeMillis(),ip});
     }
 
 }

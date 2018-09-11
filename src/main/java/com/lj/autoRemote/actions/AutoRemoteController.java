@@ -78,6 +78,45 @@ public class AutoRemoteController {
 	}
 
 
+	/** 保存本程序节点信息 */
+	@RequestMapping(value = "/saveNodeServerInfo", method = { RequestMethod.POST, RequestMethod.GET })
+	public void saveNodeServerInfo(HttpServletRequest request, HttpServletResponse response, ServerInfoBean serverInfoBean) {
+		String returnStr = "";
+		try {
+			Map<String,String> map = autoRemoteService.saveNodeServerInfo(serverInfoBean);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			logger.error("AutoRemoteController saveNodeServerInfo() is ERROR!"+e.getMessage(),e);
+		}
+	}
+
+	/** 更新本程序节点信息 */
+	@RequestMapping(value = "/updateNodeServerInfo", method = { RequestMethod.POST, RequestMethod.GET })
+	public void updateNodeServerInfo(HttpServletRequest request, HttpServletResponse response, ServerInfoBean serverInfoBean) {
+		String returnStr = "";
+		try {
+			Map<String,String> map = autoRemoteService.updateNodeServerInfo(serverInfoBean);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			logger.error("AutoRemoteController updateNodeServerInfo() is ERROR!"+e.getMessage(),e);
+		}
+	}
+
+	/** 查看本程序节点信息 */
+	@RequestMapping(value = "/queryNodeServerInfoList", method = { RequestMethod.POST, RequestMethod.GET })
+	public void queryNodeServerInfoList(HttpServletRequest request, HttpServletResponse response) {
+		String returnStr = "";
+		try {
+			Map<String,Object> map = autoRemoteService.queryNodeServerInfoList();
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			logger.error("AutoRemoteController queryNodeServerInfoList() is ERROR!"+e.getMessage(),e);
+		}
+	}
+
 	/** 查看本机服务运行情况 */
 	@RequestMapping(value = "/local/queryServerRunState", method = { RequestMethod.POST, RequestMethod.GET })
 	public void queryServerRunState(HttpServletRequest request, HttpServletResponse response, ServerInfoBean serverInfoBean)throws Exception {
@@ -110,6 +149,41 @@ public class AutoRemoteController {
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /queryServerRunState is ERROR!"+e.getMessage(),e);
+		}
+	}
+
+	/** 查看本机节点服务运行情况 */
+	@RequestMapping(value = "/local/queryNodeServerRunState", method = { RequestMethod.POST, RequestMethod.GET })
+	public void queryNodeServerRunState(HttpServletRequest request, HttpServletResponse response, ServerInfoBean serverInfoBean)throws Exception {
+		String returnStr = "";
+		try {
+			Map<String,Object> map = autoRemoteService.queryNodeServerRunState(serverInfoBean);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("state","9001");
+			map.put("bak","查询服务运行状况执行异常。 "+e.getMessage());
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /local/queryNodeServerRunState is ERROR!"+e.getMessage(),e);
+		}
+	}
+
+	/** 查看远程主机节点服务运行情况 */
+	@RequestMapping(value = "/queryNodeServerRunState", method = { RequestMethod.POST, RequestMethod.GET })
+	public void queryRemoteNodeServerRunState(HttpServletRequest request, HttpServletResponse response,ServerInfoBean serverInfoBean)throws Exception {
+		String returnStr = "";
+		try {
+			returnStr = autoRemoteService.queryRemoteNodeServerRunState(serverInfoBean);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("state","9001");
+			map.put("bak","请求远程服务异常,可能该服务未部署监控节点。 "+e.getMessage());
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /queryNodeServerRunState is ERROR!"+e.getMessage(),e);
 		}
 	}
 
