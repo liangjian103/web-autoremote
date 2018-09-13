@@ -8,13 +8,28 @@
 <meta http-equiv="expires" content="0">
 <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
 <meta http-equiv="description" content="服务监控">
-<script type="text/javascript" src="js/jquery-1.4.2.min.js"></script>
+    <link rel="stylesheet" href="layui/css/layui.css">
+    <script src="layui/layui.js"></script>
+    <script src="../js/jquery-1.4.2.min.js"></script>
 
 <script type="text/javascript">
-	$(document).ready(function() {
-		//调用后台接口，加载各服务运行情况
+
+    layui.use('upload', function(){
+        var upload = layui.upload;
+
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#test1' //绑定元素
+            ,url: '/autoRemote/apis/serverUp' //上传接口
+            ,done: function(res){
+                //上传完毕回调
+            }
+            ,error: function(){
+                //请求异常回调
+            }
+        });
         queryServerList();
-	});
+    });
 
     function StringBuffer() {
         this.__strings__ = new Array();
@@ -38,26 +53,54 @@
 			if(obj.state=="1001"){
               var list = obj.result
                 var buffer = new StringBuffer();
+                buffer.append("<tbody>");
                 for (var index in list){
                     serverInfo = list[index];
                     buffer.append("<tr>");
-                    buffer.append("<td>"+index+"</td>");
+                    buffer.append("<td>"+(index+1)+"</td>");
                     buffer.append("<td><input name=\"id\" type=\"hidden\" value=\""+serverInfo.id+"\">");
-                    buffer.append("<input name=\"ip\" type=\"text\" value=\""+serverInfo.ip+"\"></td>");
-                    buffer.append("<td><input name=\"runState\" type=\"text\" value=\""+serverInfo.state+"\"></td>");
-                    buffer.append("<td><input name=\"startTime\" type=\"text\" value=\""+serverInfo.startTime+"\"></td>");
-                    buffer.append("<td><input name=\"newState\" type=\"text\" value=\"\"></td>");
-                    buffer.append("<td><input name=\"save\" type=\"button\" value=\"另存\" onclick=\"save(this);\" >" +
-                        "<input name=\"update\" type=\"button\" value=\"保存\" onclick=\"update(this);\" >" +
-                        "<input name=\"queryServerRunState\" type=\"button\" value=\"查看运行状态\" onclick=\"queryServerRunState(this);\" >" +
+                    buffer.append("<input name=\"ip\" type=\"text\" class='layui-input' value=\""+serverInfo.ip+"\"></td>");
+                    buffer.append("<td><input name=\"runState\" type=\"text\" class='layui-input' value=\"\"></td>");
+                    buffer.append("<td><input name=\"save\" type=\"button\" class='layui-btn layui-btn-sm layui-btn-primary' value=\"另存\" onclick=\"save(this);\" >" +
+                        "<input name=\"update\" type=\"button\" value=\"保存\" class='layui-btn layui-btn-sm layui-btn-primary' onclick=\"update(this);\" >" +
+                        "<input name=\"reboot\" type=\"button\" value=\"重启\" class='layui-btn layui-btn-sm layui-btn-primary' onclick=\"reboot(this);\" >" +
+                        "<input name=\"del\" type=\"button\" value=\"删除\" class='layui-btn layui-btn-sm layui-btn-primary' onclick=\"del(this);\" >" +
+                        "<input name=\"queryServerRunState\" type=\"button\" class='layui-btn layui-btn-sm layui-btn-primary' value=\"查看运行状态\" onclick=\"queryServerRunState(this);\" >" +
 						"</td>");
                     buffer.append("</tr>");
                 }
+                buffer.append("</tbody>");
+
                 $("#serverInfoTable").append(buffer.toString());
             }else{
                 alert(data);
             }
 		});
+    }
+
+    //重启指定服务
+    function reboot(thobj) {
+        var tr = $(thobj).parents("tr");
+        param = {
+            ip:$(tr).find("[name=ip]").val()
+        };
+        $.post("/autoRemote/apis/rebootServerByIp",param,
+            function(data,status){
+                $("#rs2").html(data);
+                var obj = eval("(" + data + ")");
+            });
+    }
+    //删除
+    function del(thobj) {
+        var tr = $(thobj).parents("tr");
+        param = {
+            id:$(tr).find("[name=id]").val()
+        };
+        $.post("/autoRemote/apis/delNodeServerInfo",param,
+            function(data,status){
+                $("#rs2").html(data);
+                var obj = eval("(" + data + ")");
+            });
     }
 
     //添加
@@ -104,12 +147,12 @@
 			function(data,status){
 				$("#rs2").html(data);
 				var obj = eval("(" + data + ")");
-                $(tr).find("[name=newState]").val(obj.result);
+                $(tr).find("[name=runState]").val(obj.result);
                 if(obj.state=='1001'){
                     var pid = (obj.result==''||obj.result==null)?"未启动":"已启动("+obj.result+")"
-                    $(v).find("[name=newState]").val(pid);
+                    $(v).find("[name=runState]").val(pid);
                 }else{
-                    $(tr).find("[name=newState]").val(obj.bak);
+                    $(tr).find("[name=runState]").val(obj.bak);
                 }
 			});
     }
@@ -120,9 +163,9 @@
         var buffer = new StringBuffer();
         buffer.append("<tr>");
         buffer.append("<td>--</td>");
-        buffer.append("<td><input name=\"ip\" type=\"text\" value=\"\"></td>");
-        buffer.append("<td><input name=\"runState\" type=\"text\" value=\"\"></td>");
-        buffer.append("<td><input name=\"save\" type=\"button\" value=\"添加\" onclick=\"save(this);\" ></td>");
+        buffer.append("<td><input name=\"ip\" type=\"text\" class='layui-input' value=\"\"></td>");
+        buffer.append("<td></td>");
+        buffer.append("<td><input name=\"save\" type=\"button\" class='layui-btn layui-btn-sm layui-btn-primary'  value=\"添加\" onclick=\"save(this);\" ></td>");
         buffer.append("</tr>");
         $("#serverInfoTable").append(buffer.toString());
     }
@@ -140,12 +183,12 @@
                 function(data,status){
                     $("#rs2").html(data);
                     var obj = eval("(" + data + ")");
-                    $(v).find("[name=newState]").val(obj.result);
+                    $(v).find("[name=runState]").val(obj.result);
                     if(obj.state=='1001'){
                         var pid = (obj.result==''||obj.result==null)?"未启动":"已启动("+obj.result+")"
-                        $(v).find("[name=newState]").val(pid);
+                        $(v).find("[name=runState]").val(pid);
                     }else{
-                        $(v).find("[name=newState]").val(obj.bak);
+                        $(v).find("[name=runState]").val(obj.bak);
 					}
                 });
         });
@@ -186,36 +229,52 @@
 
 </head>
 <body>
-	<h1 style="color: green;">节点管理-非UI</h1>
-	<hr />
+    <ul class="layui-nav">
+        <li class="layui-nav-item">
+            <a href="javascript:;">亮剑-控制台</a>
+        </li>
+        <li class="layui-nav-item layui-anim-rotate">
+            <a href="javascript:;">节点管理<span class="layui-badge-dot"></span></a>
+        </li>
+        <li class="layui-nav-item">
+            <a href="serverDeploy.html">部署管理</a>
+        </li>
+        <li class="layui-nav-item" lay-unselect="">
+            <a href="javascript:;">监控管理</a>
+        </li>
+    </ul>
+
 <div id="rs" >
-	<table id="serverInfoTable" border='1' bordercolor='#cccccc' style='border-collapse:collapse'>
-		<tr>
-			<td>序号</td>
-			<td>服务器IP</td>
-			<td>启动进程ID</td>
-			<td>启动时间</td>
-			<td>最新状态</td>
-			<td>操作</td>
-		</tr>
-	</table>
-	<input type="button" value="追加备案表信息" onclick="addTr()" >
+    <table id="serverInfoTable" class="layui-table" lay-skin="line" lay-size="sm">
+        <colgroup>
+            <col width="10">
+            <col width="200">
+            <col>
+            <col width="400">
+        </colgroup>
+        <thead>
+        <tr>
+            <td>序号</td>
+            <td>服务器IP</td>
+            <td>启动状态（进程号）</td>
+            <td>操作</td>
+        </tr>
+        </thead>
+    </table>
+        <a class="layui-btn layui-btn-sm layui-btn-primary" onclick="addTr()">追加备案表信息</a>
 </div>
 
-	<form enctype="multipart/form-data" method="post" action="/autoRemote/apis/serverUp">
-		程序包：<input type="file" name="file"/>
-		<input type="submit" value="上传新程序包到所有监控节点"/>
-	</form>
+    <button type="button" class="layui-btn" id="test1">
+        <i class="layui-icon">&#xe67c;</i>上传新程序
+    </button>
 
-	<div id="bn" >
-		<input type="button" value="查看各服务运行状态" onclick="queryServerState()" >
-	</div>
-	<input type="button" value="当前服务重启" onclick="rebootServer()" >
-	<input type="button" value="重启所有节点" onclick="rebootServerAll()" >
-	<input type="button" value="所有监控节点程序更新" onclick="setupServer()" >
-	<input type="button" value="同步数据库到所有监控节点" onclick="synDB()" >
+    <input class="layui-btn layui-btn-radius layui-btn-primary" type="button" value="查看各节点运行状态" onclick="queryServerState()" >
+	<input class="layui-btn layui-btn-radius layui-btn-primary" type="button" value="自身重启" onclick="rebootServer()" >
+	<input class="layui-btn layui-btn-radius layui-btn-primary" type="button" value="全部重启" onclick="rebootServerAll()" >
+	<input class="layui-btn layui-btn-radius layui-btn-primary" type="button" value="所有监控节点程序更新" onclick="setupServer()" >
+	<input class="layui-btn layui-btn-radius layui-btn-primary" type="button" value="同步数据库" onclick="synDB()" >
 
-	<div id="rs2" ></div>
+    <pre id="rs2" class="layui-code" lay-title="" lay-height="" lay-skin="" lay-encode=""></pre>
 
 </body>
 </html>

@@ -1,8 +1,10 @@
 package com.lj.autoRemote.service;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.lj.autoRemote.beans.ServerInfoBean;
 import com.lj.autoRemote.dao.AutoRemoteDao;
+import com.lj.utils.JsonUtil;
 import org.apache.log4j.Logger;
 import org.apache.tomcat.util.http.fileupload.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -148,6 +150,25 @@ public class AutoRemoteService {
     }
 
     /**
+     * 删除节点信息
+     * @param id
+     * @return
+     */
+    public Map<String,String> delNodeServerInfo(int id){
+        Map<String,String> map = new HashMap<String, String>();
+        try{
+            autoRemoteDao.delMyselfInfoById(id);
+            map.put("state","1001");
+            map.put("bak","删除成功");
+        }catch (Exception e){
+            logger.error("delNodeServerInfo is ERROR! id:"+id + e.getMessage(),e);
+            map.put("state","9001");
+            map.put("bak","删除失败，服务异常："+e.getMessage());
+        }
+        return map;
+    }
+
+    /**
      * 查询本程序所有节点信息
      * @return
      */
@@ -156,6 +177,22 @@ public class AutoRemoteService {
 
         try{
             List<ServerInfoBean> list = autoRemoteDao.queryNodeServerInfoList();
+//            for (ServerInfoBean serverInfoBean : list) {
+//                try {
+//                    String json = queryRemoteNodeServerRunState(serverInfoBean);
+//                    JSONObject jsonObject = JSON.parseObject(json);
+//                    String state = jsonObject.get("state")+"";
+//                    String result = jsonObject.get("result")+"";
+//                    String bak = jsonObject.get("bak")+"";
+//                    if("1001".equals(state)){
+//                        serverInfoBean.setState(result);
+//                    }else {
+//                        serverInfoBean.setState(bak);
+//                    }
+//                } catch (Exception e) {
+//                    serverInfoBean.setState("请求远程服务异常,可能该服务未部署监控节点。 "+e.getMessage());
+//                }
+//            }
             map.put("state","1001");
             map.put("result",list);
             map.put("bak","查询成功");
@@ -381,6 +418,36 @@ public class AutoRemoteService {
         }else{
             map.put("info","DB没有web-autoremote服务部署节点");
         }
+        return map;
+    }
+
+    /**
+     * 发送远程重启服务请求
+     * @return
+     * @throws Exception
+     */
+    public Map<String,Object> remoteRebootServer(String ip)throws Exception{
+        Map<String,Object> map = new HashMap<String, Object>();
+        String url = "http://" + ip + ":" + port + "/autoRemote/apis/local/rebootServer";
+            try{
+                HttpHeaders headers = new HttpHeaders();
+                //  请勿轻易改变此提交方式，大部分的情况下，提交方式都是表单提交
+                headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+                //  封装参数，千万不要替换为Map与HashMap，否则参数无法传递
+                MultiValueMap<String, String> params = new LinkedMultiValueMap<String, String>();
+                //  也支持中文
+                params.add("ip", ip);
+                HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
+                //  执行HTTP请求
+                ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                //  输出结果
+                String jsonStr = response.getBody();
+                logger.info("request URL:" + url + ",param:ip=" + ip + ",Return:" + jsonStr);
+                map.put(ip+"",JSON.parse(jsonStr));
+            }catch (Exception e){
+                map.put(ip,ip+","+e.getMessage());
+                logger.error("remoteRebootServer is ERROR! IP:"+ip,e);
+            }
         return map;
     }
 

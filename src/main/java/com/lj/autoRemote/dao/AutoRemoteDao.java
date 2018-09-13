@@ -161,4 +161,12 @@ public class AutoRemoteDao {
         jdbcTemplateForSqlLite.update(sql,new Object[]{state+"",System.currentTimeMillis(),ip});
     }
 
+    /**
+     * 删除节点(根据Id)
+     */
+    public void delMyselfInfoById(int id) {
+        String sql = "delete from tb_server_node where id=? ";
+        jdbcTemplateForSqlLite.update(sql,new Object[]{id});
+    }
+
 }

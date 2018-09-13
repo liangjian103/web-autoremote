@@ -104,6 +104,19 @@ public class AutoRemoteController {
 		}
 	}
 
+	/** 删除节点信息 */
+	@RequestMapping(value = "/delNodeServerInfo", method = { RequestMethod.POST, RequestMethod.GET })
+	public void delNodeServerInfo(HttpServletRequest request, HttpServletResponse response, int id) {
+		String returnStr = "";
+		try {
+			Map<String,String> map = autoRemoteService.delNodeServerInfo(id);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			logger.error("AutoRemoteController delNodeServerInfo() is ERROR!"+e.getMessage(),e);
+		}
+	}
+
 	/** 查看本程序节点信息 */
 	@RequestMapping(value = "/queryNodeServerInfoList", method = { RequestMethod.POST, RequestMethod.GET })
 	public void queryNodeServerInfoList(HttpServletRequest request, HttpServletResponse response) {
@@ -239,6 +252,27 @@ public class AutoRemoteController {
 		String returnStr = "";
 		try {
 			Map<String, Object> map = autoRemoteService.remoteRebootServer();
+			map.put("state", "1001");
+			map.put("bak", "远程服务重启请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "9001");
+			map.put("bak", "服务重启请求已发送。" + e.getMessage());
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+		}
+	}
+	/**
+	 * 重启服务（远程）
+	 */
+	@RequestMapping(value = "/rebootServerByIp", method = {RequestMethod.POST, RequestMethod.GET})
+	public void rebootServerByIp(HttpServletRequest request, HttpServletResponse response,String ip) throws Exception {
+		String returnStr = "";
+		try {
+			Map<String, Object> map = autoRemoteService.remoteRebootServer(ip);
 			map.put("state", "1001");
 			map.put("bak", "远程服务重启请求已发送! RemoteHost:"+request.getRemoteHost()+",Host:"+request.getLocalAddr());
 			returnStr = JsonUtil.toCompatibleJSONString(map);
