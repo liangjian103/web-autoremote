@@ -7,7 +7,7 @@
 <meta http-equiv="cache-control" content="no-cache">
 <meta http-equiv="expires" content="0">
 <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
-<meta http-equiv="description" content="服务监控">
+<meta http-equiv="description" content="服务节点监控">
     <link rel="stylesheet" href="layui/css/layui.css">
     <script src="layui/layui.js"></script>
     <script src="../js/jquery-1.4.2.min.js"></script>
@@ -21,11 +21,17 @@
         var uploadInst = upload.render({
             elem: '#test1' //绑定元素
             ,url: '/autoRemote/apis/serverUp' //上传接口
+            ,accept:'file'
+            ,field:'file'//文本域名称
             ,done: function(res){
                 //上传完毕回调
+                layer.msg('上传成功');
+                $("#rs2").html('上传成功'+JSON.stringify(res));
+                console.log(res);
             }
             ,error: function(){
                 //请求异常回调
+                layer.msg('上传失败');
             }
         });
         queryServerList();
@@ -55,22 +61,21 @@
                 var buffer = new StringBuffer();
                 buffer.append("<tbody>");
                 for (var index in list){
-                    serverInfo = list[index];
+                    var serverInfo = list[index];
                     buffer.append("<tr>");
-                    buffer.append("<td>"+(index+1)+"</td>");
+                    buffer.append("<td>"+serverInfo.id+"</td>");
                     buffer.append("<td><input name=\"id\" type=\"hidden\" value=\""+serverInfo.id+"\">");
                     buffer.append("<input name=\"ip\" type=\"text\" class='layui-input' value=\""+serverInfo.ip+"\"></td>");
                     buffer.append("<td><input name=\"runState\" type=\"text\" class='layui-input' value=\"\"></td>");
                     buffer.append("<td><input name=\"save\" type=\"button\" class='layui-btn layui-btn-sm layui-btn-primary' value=\"另存\" onclick=\"save(this);\" >" +
                         "<input name=\"update\" type=\"button\" value=\"保存\" class='layui-btn layui-btn-sm layui-btn-primary' onclick=\"update(this);\" >" +
-                        "<input name=\"reboot\" type=\"button\" value=\"重启\" class='layui-btn layui-btn-sm layui-btn-primary' onclick=\"reboot(this);\" >" +
                         "<input name=\"del\" type=\"button\" value=\"删除\" class='layui-btn layui-btn-sm layui-btn-primary' onclick=\"del(this);\" >" +
+                        "<input name=\"reboot\" type=\"button\" value=\"重启\" class='layui-btn layui-btn-sm layui-btn-primary' onclick=\"reboot(this);\" >" +
                         "<input name=\"queryServerRunState\" type=\"button\" class='layui-btn layui-btn-sm layui-btn-primary' value=\"查看运行状态\" onclick=\"queryServerRunState(this);\" >" +
 						"</td>");
                     buffer.append("</tr>");
                 }
                 buffer.append("</tbody>");
-
                 $("#serverInfoTable").append(buffer.toString());
             }else{
                 alert(data);
@@ -115,7 +120,6 @@
 			function(data,status){
 				$("#rs2").html(data);
 				var obj = eval("(" + data + ")");
-				alert(obj.state+"----"+obj.bak);
 			});
     }
     //更新
@@ -131,7 +135,6 @@
 			function(data,status){
 				$("#rs2").html(data);
 				var obj = eval("(" + data + ")");
-				alert(obj.state+"----"+obj.bak);
 			});
     }
     //查看运行状态
@@ -150,7 +153,7 @@
                 $(tr).find("[name=runState]").val(obj.result);
                 if(obj.state=='1001'){
                     var pid = (obj.result==''||obj.result==null)?"未启动":"已启动("+obj.result+")"
-                    $(v).find("[name=runState]").val(pid);
+                    $(tr).find("[name=runState]").val(pid);
                 }else{
                     $(tr).find("[name=runState]").val(obj.bak);
                 }
@@ -234,7 +237,7 @@
             <a href="javascript:;">亮剑-控制台</a>
         </li>
         <li class="layui-nav-item layui-anim-rotate">
-            <a href="javascript:;">节点管理<span class="layui-badge-dot"></span></a>
+            <a href="">节点管理<span class="layui-badge-dot"></span></a>
         </li>
         <li class="layui-nav-item">
             <a href="serverDeploy.html">部署管理</a>
@@ -254,7 +257,7 @@
         </colgroup>
         <thead>
         <tr>
-            <td>序号</td>
+            <td>ID</td>
             <td>服务器IP</td>
             <td>启动状态（进程号）</td>
             <td>操作</td>

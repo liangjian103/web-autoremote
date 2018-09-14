@@ -264,10 +264,8 @@ public class AutoRemoteService {
         String ip = serverInfoBean.getIp();
         String serverName = serverInfoBean.getServerName();
         String serverPath = serverInfoBean.getServerPath();
-        ServerInfoBean serverInfoBeanRs = autoRemoteDao.queryServerInfoById(id);
-        logger.info("queryServerRunState autoRemoteDao.queryServerInfoById("+id+") >>  "+serverInfoBeanRs.toString());
         Map<String,Object> rsMap = new HashMap<String,Object>();
-        rsMap.put("oldPid",serverInfoBeanRs.getState());
+        rsMap.put("id",id);
         try {
             String pid = CmdToolkit.queryProcessPid(serverPath);
             rsMap.put("pid",pid);
@@ -569,7 +567,7 @@ public class AutoRemoteService {
             logger.error("获取当前服务器IP异常。ERROR! "+e.getMessage(),e);
         }
         String ip = address.getHostAddress();//192.168.0.121
-        autoRemoteDao.updateMyselfInfoByIp(ip,processId);
+//        autoRemoteDao.updateMyselfInfoByIp(ip,processId);
         System.out.println("start IP:" + ip + ",processId:" + processId);
     }
 

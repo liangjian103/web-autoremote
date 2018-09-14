@@ -132,8 +132,8 @@ public class AutoRemoteDao {
      * @throws Exception
      */
     public void saveNodeServerInfo(ServerInfoBean serverInfoBean){
-        String sql = "insert into tb_server_node (ip,state) values (?,?) ";
-        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getState()});
+        String sql = "insert into tb_server_node (ip) values (?) ";
+        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp()});
     }
 
     /**
@@ -142,8 +142,8 @@ public class AutoRemoteDao {
      * @throws Exception
      */
     public void updateNodeServerInfo(ServerInfoBean serverInfoBean){
-        String sql = "update tb_server_node set ip=?,state=? where id=? ";
-        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getState(),serverInfoBean.getId()});
+        String sql = "update tb_server_node set ip=? where id=? ";
+        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getId()});
     }
 
     /**
