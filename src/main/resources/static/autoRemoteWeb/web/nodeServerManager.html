@@ -19,19 +19,35 @@
 
         //执行实例
         var uploadInst = upload.render({
-            elem: '#test1' //绑定元素
+            elem: '#serverUp' //绑定元素
             ,url: '/autoRemote/apis/serverUp' //上传接口
             ,accept:'file'
             ,field:'file'//文本域名称
             ,done: function(res){
                 //上传完毕回调
-                layer.msg('上传成功');
+                layer.msg('上传新程序成功');
+                $("#rs2").html('上传新程序成功'+JSON.stringify(res));
+                console.log(res);
+            }
+            ,error: function(){
+                //请求异常回调
+                layer.msg('上传新程序失败');
+            }
+        });
+        var uploadInstDB = upload.render({
+            elem: '#dbUp' //绑定元素
+            ,url: '/autoRemote/apis/dbUp' //上传接口
+            ,accept:'file'
+            ,field:'file'//文本域名称
+            ,done: function(res){
+                //上传完毕回调
+                layer.msg('上传DB文件成功');
                 $("#rs2").html('上传成功'+JSON.stringify(res));
                 console.log(res);
             }
             ,error: function(){
                 //请求异常回调
-                layer.msg('上传失败');
+                layer.msg('上传DB文件失败');
             }
         });
         queryServerList();
@@ -105,6 +121,7 @@
             function(data,status){
                 $("#rs2").html(data);
                 var obj = eval("(" + data + ")");
+                tr.html("");
             });
     }
 
@@ -267,8 +284,11 @@
         <a class="layui-btn layui-btn-sm layui-btn-primary" onclick="addTr()">追加备案表信息</a>
 </div>
 
-    <button type="button" class="layui-btn" id="test1">
+    <button type="button" class="layui-btn" id="serverUp">
         <i class="layui-icon">&#xe67c;</i>上传新程序
+    </button>
+    <button type="button" class="layui-btn" id="dbUp">
+        <i class="layui-icon">&#xe67c;</i>上传数据库文件
     </button>
 
     <input class="layui-btn layui-btn-radius layui-btn-primary" type="button" value="查看各节点运行状态" onclick="queryServerState()" >

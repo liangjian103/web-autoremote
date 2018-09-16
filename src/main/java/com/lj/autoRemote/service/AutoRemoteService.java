@@ -92,12 +92,30 @@ public class AutoRemoteService {
     }
 
     /**
+     * 删除服务信息
+     * @param serverInfoBean
+     * @return
+     */
+	public Map<String,String> delServerInfo(ServerInfoBean serverInfoBean){
+	    Map<String,String> map = new HashMap<String, String>();
+	    try{
+            autoRemoteDao.delServerInfoById(serverInfoBean);
+            map.put("state","1001");
+            map.put("bak","删除成功");
+        }catch (Exception e){
+            logger.error("delServerInfo is ERROR! "+serverInfoBean.toString() + e.getMessage(),e);
+            map.put("state","9001");
+            map.put("bak","删除失败，服务异常："+e.getMessage());
+        }
+        return map;
+    }
+
+    /**
      * 查询所有备案信息
      * @return
      */
 	public Map<String,Object> queryServerInfoList(){
         Map<String,Object> map = new HashMap<String, Object>();
-
 	    try{
             List<ServerInfoBean> list = autoRemoteDao.queryServerInfoList();
             map.put("state","1001");
@@ -325,6 +343,67 @@ public class AutoRemoteService {
             final CountDownLatch latch = new CountDownLatch(list.size());// 同步辅助类
             for (final ServerInfoBean serverInfoBean : list) {
                 final String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/serverUp";
+                new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try {
+                            FileSystemResource fileSystemResource = new FileSystemResource(tempFilePath);
+                            //设置HTTP头信息
+                            HttpHeaders headers = new HttpHeaders();
+                            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+                            headers.add("Content-Disposition", "filename=\"" + fileSystemResource.getFilename() + "\"");
+                            //HTTP参数设置
+                            MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
+                            params.add("file", fileSystemResource);
+                            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+                            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                            //返回结果
+                            String responseBody = response.getBody();
+                            logger.info("sendRemoteFile,URL:"+url+",responseBody:"+responseBody);
+                            map.put(serverInfoBean.getId()+"",JSON.parse(responseBody));
+                        } catch (Exception e) {
+                            String message = "发送文件到远程服务节点失败! URL:"+url+","+e.getMessage();
+                            logger.error(message,e);
+                            map.put(serverInfoBean.getId()+"",message);
+                        }
+                        latch.countDown();// 计数减一
+                    }
+                }).start();
+            }
+            latch.await();// 等待子线程结束
+            //删除临时文件夹
+            FileUtils.deleteDirectory(tempDirectory);
+        }else {
+            map.put("info","DB没有web-autoremote服务部署节点");
+        }
+        return map;
+    }
+
+    /**
+     * 向远程服务传输DB文件
+     */
+    public Map<String,Object> dbUp(MultipartFile multipartFile)throws Exception{
+        final Map<String,Object> map = new HashMap<String, Object>();
+        List<ServerInfoBean> list = autoRemoteDao.queryNodeServerInfoList();
+        if(list!=null&&list.size()>0){
+            String tempPathDir = tempPath+File.separator+ UUID.randomUUID().toString()+File.separator;
+            File tempDirectory = new File(tempPathDir);
+            tempDirectory.mkdirs();
+            final String tempFilePath = tempPathDir + multipartFile.getOriginalFilename();
+            File tempFile = new File(tempFilePath);
+
+            try {
+                //保存临时文件
+                multipartFile.transferTo(tempFile);
+            } catch (IOException e) {
+                String message = "写临时文件出错! tempFilePath:"+tempFilePath;
+                logger.error(message,e);
+                throw new IOException(message,e);
+            }
+
+            final CountDownLatch latch = new CountDownLatch(list.size());// 同步辅助类
+            for (final ServerInfoBean serverInfoBean : list) {
+                final String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/synDB";
                 new Thread(new Runnable(){
                     @Override
                     public void run() {

@@ -43,6 +43,16 @@ public class AutoRemoteDao {
     }
 
     /**
+     * 删除备案表信息（根据ID）
+     * @param serverInfoBean
+     * @throws Exception
+     */
+    public void delServerInfoById(ServerInfoBean serverInfoBean) throws Exception{
+        String sql = "delete from tb_server_deploy where id=? ";
+        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getId()});
+    }
+
+    /**
      * 查询所有备案信息
      * @return
      * @throws Exception

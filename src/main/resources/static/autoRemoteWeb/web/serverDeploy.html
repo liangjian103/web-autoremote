@@ -24,7 +24,7 @@
                 ,{field:'serverName', edit:'text', minWidth: 100,width:150,title:'服务名称'}
                 ,{field:'serverPath', edit:'text', minWidth: 200,title:'服务路径'}
                 ,{field:'state', minWidth: 100,title:'运行状态'}
-                ,{fixed:'right', width:300, align:'center', toolbar: '#barDemo',title:'操作'}
+                ,{fixed:'right', width:350, align:'center', toolbar: '#barDemo',title:'操作'}
             ]]
             ,request:{pageName: 'page',limitName: 'limit'}
             ,response:{statusName:'state',statusCode:'1001',dataName:'result'}
@@ -35,7 +35,7 @@
             var value = obj.value //得到修改后的值
                 ,data = obj.data //得到所在行所有键值
                 ,field = obj.field; //得到字段
-            layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
+            // layer.msg('[ID: '+ data.id +'] ' + field + ' 字段更改为：'+ value);
         });
 
         //监听表格复选框选择
@@ -51,22 +51,67 @@
                 });
             } else if(obj.event === 'del'){
                 layer.confirm('真的删除行么', function(index){
-                    obj.del();
-                    layer.close(index);
+                    $.post("/autoRemote/apis/delServerInfo",{
+                            id:data.id
+                        },
+                        function(data,status){
+                            $("#rs2").html(data);
+                            var dataObj = eval("(" + data + ")");
+                            if(dataObj.state=='1001'){
+                                obj.del();
+                                layer.close(index);
+                                layer.alert("删除成功");
+                            }else{
+                                layer.alert("删除失败");
+                            }
+                        });
                 });
             } else if(obj.event === 'save'){
-                layer.alert('保存编辑行：<br>'+ JSON.stringify(data))
-				obj.update({
-                    state: '123'
-				});
-
+                //layer.alert('保存编辑行：<br>'+ JSON.stringify(data))
+                $.post("/autoRemote/apis/updateServerInfo",{
+                    id:data.id
+					,ip:data.ip
+					,serverName:data.serverName
+					,serverPath:data.serverPath
+					},
+                    function(data,status){
+                        $("#rs2").html(data);
+                        layer.alert("保存成功");
+                    });
             }else if(obj.event === 'asSave'){
-                layer.alert('另存行：<br>'+ JSON.stringify(data))
+                $.post("/autoRemote/apis/saveServerInfo",{
+                        ip:data.ip
+                        ,serverName:data.serverName
+                        ,serverPath:data.serverPath
+                    },
+                    function(data,status){
+                        $("#rs2").html(data);
+                        layer.alert("另存成功");
+                    });
             }else if(obj.event === 'queryState'){
-                layer.alert('查看进程号')
-                obj.update({
-                    state: '123'
-                });
+                $.post("/autoRemote/apis/queryServerRunState",{
+                        ip:data.ip
+                        ,serverName:data.serverName
+                        ,serverPath:data.serverPath
+                    },
+                    function(data,status){
+                        $("#rs2").html(data);
+                        var dataObj = eval("(" + data + ")");
+                        obj.update({
+                            state: dataObj.result
+                        });
+                        if(dataObj.state=='1001'){
+                            var pid = (dataObj.result==''||dataObj.result==null)?"未启动":"已启动("+dataObj.result+")"
+                            obj.update({
+                                state: pid
+                            });
+                        }else{
+                            obj.update({
+                                state: dataObj.bak
+                            });
+                        }
+                    });
+
             }
         });
 

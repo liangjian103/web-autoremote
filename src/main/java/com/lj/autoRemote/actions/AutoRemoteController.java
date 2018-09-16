@@ -38,7 +38,7 @@ public class AutoRemoteController {
     @Value("${spring.datasource.sqllite.url}")
     private String dbUrl;
 
-	/** 保存备案表信息 */
+	/** 另存备案表信息 */
 	@RequestMapping(value = "/saveServerInfo", method = { RequestMethod.POST, RequestMethod.GET })
 	public void saveServerInfo(HttpServletRequest request, HttpServletResponse response, ServerInfoBean serverInfoBean) {
 		String returnStr = "";
@@ -51,7 +51,7 @@ public class AutoRemoteController {
 		}
 	}
 
-	/** 更新备案表信息 */
+	/** 更新保存备案表信息 */
 	@RequestMapping(value = "/updateServerInfo", method = { RequestMethod.POST, RequestMethod.GET })
 	public void updateServerInfo(HttpServletRequest request, HttpServletResponse response, ServerInfoBean serverInfoBean) {
 		String returnStr = "";
@@ -61,6 +61,19 @@ public class AutoRemoteController {
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			logger.error("AutoRemoteController updateServerInfo() is ERROR!"+e.getMessage(),e);
+		}
+	}
+
+	/** 删除保存备案表信息 */
+	@RequestMapping(value = "/delServerInfo", method = { RequestMethod.POST, RequestMethod.GET })
+	public void delServerInfo(HttpServletRequest request, HttpServletResponse response, ServerInfoBean serverInfoBean) {
+		String returnStr = "";
+		try {
+			Map<String,String> map = autoRemoteService.delServerInfo(serverInfoBean);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			logger.error("AutoRemoteController delServerInfo() is ERROR!"+e.getMessage(),e);
 		}
 	}
 
@@ -215,6 +228,24 @@ public class AutoRemoteController {
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 			logger.error("AutoRemoteController /serverUp is ERROR!"+e.getMessage(),e);
+		}
+	}
+
+	/** DB文件推送给远程节点 */
+	@RequestMapping(value = "/dbUp", method = { RequestMethod.POST, RequestMethod.GET })
+	public void remoteDbUp(HttpServletRequest request, HttpServletResponse response,@RequestParam("file") MultipartFile file)throws Exception {
+		String returnStr = "upload success";
+		try {
+			Map<String,Object> map = autoRemoteService.dbUp(file);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("state","9001");
+			map.put("bak","DB文件上传异常。"+e.getMessage());
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /dbUp is ERROR!"+e.getMessage(),e);
 		}
 	}
 

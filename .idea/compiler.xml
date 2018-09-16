@@ -9,8 +9,5 @@
         <module name="web-autoremote" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="web-autoremote" target="1.6" />
-    </bytecodeTargetLevel>
   </component>
 </project>
