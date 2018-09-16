@@ -165,12 +165,16 @@ public class AutoRemoteController {
 	@RequestMapping(value = "/queryServerRunState", method = { RequestMethod.POST, RequestMethod.GET })
 	public void queryRemoteServerRunState(HttpServletRequest request, HttpServletResponse response,ServerInfoBean serverInfoBean)throws Exception {
 		String returnStr = "";
+		int id = serverInfoBean.getId();
+		Map<String,Object> rsMap = new HashMap<String,Object>();
+        rsMap.put("id",id);
 		try {
 			returnStr = autoRemoteService.queryRemoteServerRunState(serverInfoBean);
 			retrunData(response, returnStr);
 		} catch (Exception e) {
 			Map<String,Object> map = new HashMap<String,Object>();
 			map.put("state","9001");
+			map.put("result",rsMap);
 			map.put("bak","请求远程服务异常,可能该服务未部署监控节点。 "+e.getMessage());
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);

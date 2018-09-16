@@ -241,6 +241,7 @@ public class AutoRemoteService {
         params.add("serverPath", serverInfoBean.getServerPath());
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
         //  执行HTTP请求
+        logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Start");
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
         //  输出结果
         String jsonStr = response.getBody();
@@ -265,6 +266,7 @@ public class AutoRemoteService {
         params.add("state", serverInfoBean.getState());
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
         //  执行HTTP请求
+        logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Start");
         ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
         //  输出结果
         String jsonStr = response.getBody();
@@ -478,6 +480,7 @@ public class AutoRemoteService {
                             params.add("serverPath", serverInfoBean.getServerPath());
                             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
                             //  执行HTTP请求
+                            logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Start");
                             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
                             //  输出结果
                             String jsonStr = response.getBody();
@@ -516,6 +519,7 @@ public class AutoRemoteService {
                 params.add("ip", ip);
                 HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
                 //  执行HTTP请求
+                logger.info("request URL:" + url + ",param:ip=" + ip + ",Start");
                 ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
                 //  输出结果
                 String jsonStr = response.getBody();
@@ -566,6 +570,7 @@ public class AutoRemoteService {
                             params.add("serverPath", serverInfoBean.getServerPath());
                             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
                             //  执行HTTP请求
+                            logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Start");
                             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
                             //  输出结果
                             String jsonStr = response.getBody();

@@ -90,7 +90,8 @@
                     });
             }else if(obj.event === 'queryState'){
                 $.post("/autoRemote/apis/queryServerRunState",{
-                        ip:data.ip
+                        id:data.id
+                        ,ip:data.ip
                         ,serverName:data.serverName
                         ,serverPath:data.serverPath
                     },
@@ -98,10 +99,10 @@
                         $("#rs2").html(data);
                         var dataObj = eval("(" + data + ")");
                         obj.update({
-                            state: dataObj.result
+                            state: dataObj.result.pid
                         });
                         if(dataObj.state=='1001'){
-                            var pid = (dataObj.result==''||dataObj.result==null)?"未启动":"已启动("+dataObj.result+")"
+                            var pid = (dataObj.result.pid==''||dataObj.result.pid==null)?"未启动":"已启动("+dataObj.result.pid+")"
                             obj.update({
                                 state: pid
                             });
@@ -134,9 +135,23 @@
                             var obj = eval("(" + rs + ")");
                             if(obj.state=='1001'){
                                 console.log(obj.result.id+'---'+obj.result.pid);
-                                data[i].state=(obj.result.pid==''||obj.result.pid==null)?"未启动":"启动("+obj.result.pid+")";
+                                var pid = (obj.result.pid==''||obj.result.pid==null)?"未启动":"已启动("+obj.result.pid+")";
+
+                                $(".layui-table-body.layui-table-main").find("tr").each(function () {
+                                    // console.log($(this).find(".layui-table-cell.laytable-cell-1-0-1").html());
+                                    // console.log($(this).find(".layui-table-cell.laytable-cell-1-0-5").html());
+                                    var id = $(this).find(".layui-table-cell.laytable-cell-1-0-1").html();
+                                    if(id==obj.result.id){
+                                        $(this).find(".layui-table-cell.laytable-cell-1-0-5").html(pid);
+                                    }
+                                });
                             }else{
-                                data[i].serverName=obj.bak;
+                                $(".layui-table-body.layui-table-main").find("tr").each(function () {
+                                    var id = $(this).find(".layui-table-cell.laytable-cell-1-0-1").html();
+                                    if(id==obj.result.id){
+                                        $(this).find(".layui-table-cell.laytable-cell-1-0-5").html(obj.bak);
+                                    }
+                                });
                             }
 						});
 				}
