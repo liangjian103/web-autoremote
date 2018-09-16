@@ -24,15 +24,22 @@ create table tb_server_deploy
   seq           integer
 );
 
+-- auto-generated definition
 create table tb_server_node
 (
-  id    integer
+  id        integer
     primary key
   autoincrement,
-  ip    varchar,
-  state varchar
+  ip        varchar,
+  state     varchar,
+  starttime integer(15)
 );
 
 create unique index tb_server_node_ip_uindex
   on tb_server_node (ip);
+
+```
+定期对数据库执行,释放Sqlite空间资源:
+```
+VACUUM
 ```
