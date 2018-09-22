@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 
 import javax.sql.DataSource;
 import java.sql.SQLException;
@@ -27,6 +28,12 @@ public class DruidDBForSqlLiteConfig {
     public JdbcTemplate jdbcTemplateForSqlLite(){
         JdbcTemplate jdbcTemplate = new JdbcTemplate(dataSourceForSqlLite());
         return jdbcTemplate;
+    }
+
+    @Bean     //声明其为Bean实例
+    public NamedParameterJdbcTemplate namedParameterJdbcTemplateForSqlLite(){
+        NamedParameterJdbcTemplate namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSourceForSqlLite());
+        return namedParameterJdbcTemplate;
     }
 
     @Bean     //声明其为Bean实例

@@ -170,6 +170,21 @@
                 var checkStatus = table.checkStatus('nodeData');
                 layer.msg(checkStatus.isAll ? '全选': '未全选')
             }
+            ,reload: function(){
+                var ip = $('#ip');
+                var serverName = $('#serverName');
+
+                //执行重载
+                table.reload('nodeData', {
+                    page: {
+                        curr: 1 //重新从第 1 页开始
+                    }
+                    ,where: {
+						ip: ip.val()
+						,serverName:serverName.val()
+                    }
+                });
+            }
         };
 
         $('.demoTable .layui-btn').on('click', function(){
@@ -195,6 +210,19 @@
 		<a href="javascript:;">监控管理</a>
 	</li>
 </ul>
+
+<div class="demoTable">
+	搜索IP：
+	<div class="layui-inline">
+		<input class="layui-input" name="ip" id="ip" autocomplete="off">
+	</div>
+	服务名称：
+	<div class="layui-inline">
+		<input class="layui-input" name="serverName" id="serverName" autocomplete="off">
+	</div>
+	<button class="layui-btn" data-type="reload">搜索</button>
+</div>
+
 <table class="layui-hide" id="demo" lay-filter="nodeListTable"></table>
 
 

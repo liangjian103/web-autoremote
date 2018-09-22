@@ -79,10 +79,10 @@ public class AutoRemoteController {
 
 	/** 查看备案表信息 */
 	@RequestMapping(value = "/queryServerInfoList", method = { RequestMethod.POST, RequestMethod.GET })
-	public void queryServerInfoList(HttpServletRequest request, HttpServletResponse response) {
+	public void queryServerInfoList(HttpServletRequest request, HttpServletResponse response,ServerInfoBean serverInfoBean) {
 		String returnStr = "";
 		try {
-			Map<String,Object> map = autoRemoteService.queryServerInfoList();
+			Map<String,Object> map = autoRemoteService.queryServerInfoList(serverInfoBean);
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
 		} catch (Exception e) {

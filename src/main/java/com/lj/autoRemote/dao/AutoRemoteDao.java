@@ -5,11 +5,14 @@ import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
+import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 数据存储层
@@ -21,6 +24,8 @@ public class AutoRemoteDao {
 
     @Autowired
     private JdbcTemplate jdbcTemplateForSqlLite;
+    @Autowired
+    private NamedParameterJdbcTemplate namedParameterJdbcTemplateForSqlLite;
 
     /**
      * 插入备案表信息
@@ -57,9 +62,14 @@ public class AutoRemoteDao {
      * @return
      * @throws Exception
      */
-    public List<ServerInfoBean> queryServerInfoList()throws Exception{
-        String sql = "select * from tb_server_deploy";
-        return jdbcTemplateForSqlLite.query(sql,new RowMapper<ServerInfoBean>(){
+    public List<ServerInfoBean> queryServerInfoList(ServerInfoBean serverInfoBean)throws Exception{
+        String sql = "select * from tb_server_deploy where 1=1 and (ip = :ip or :ip is null) and (serverName like :serverName or :serverName is null)";
+        Map<String,String> map = new HashMap<String,String>();
+        if(serverInfoBean!=null){
+            map.put("ip","".equals(serverInfoBean.getIp())?null:serverInfoBean.getIp());
+            map.put("serverName","".equals(serverInfoBean.getServerName())?null:serverInfoBean.getServerName());
+        }
+        return namedParameterJdbcTemplateForSqlLite.query(sql,map,new RowMapper<ServerInfoBean>(){
             @Override
             public ServerInfoBean mapRow(ResultSet rs, int rowNum) throws SQLException {
                 ServerInfoBean serverInfoBean = new ServerInfoBean();
