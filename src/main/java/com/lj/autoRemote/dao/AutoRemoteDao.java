@@ -63,11 +63,11 @@ public class AutoRemoteDao {
      * @throws Exception
      */
     public List<ServerInfoBean> queryServerInfoList(ServerInfoBean serverInfoBean)throws Exception{
-        String sql = "select * from tb_server_deploy where 1=1 and (ip = :ip or :ip is null) and (serverName like :serverName or :serverName is null)";
+        String sql = "select * from tb_server_deploy where 1=1 and (ip like :ip or :ip is null) and (serverName like :serverName or :serverName is null)";
         Map<String,String> map = new HashMap<String,String>();
         if(serverInfoBean!=null){
-            map.put("ip","".equals(serverInfoBean.getIp())?null:serverInfoBean.getIp());
-            map.put("serverName","".equals(serverInfoBean.getServerName())?null:serverInfoBean.getServerName());
+            map.put("ip",(null==serverInfoBean.getIp()||"".equals(serverInfoBean.getIp()))?null:"%"+serverInfoBean.getIp()+"%");
+            map.put("serverName",(null==serverInfoBean.getServerName()||"".equals(serverInfoBean.getServerName()))?null:"%"+serverInfoBean.getServerName()+"%");
         }
         return namedParameterJdbcTemplateForSqlLite.query(sql,map,new RowMapper<ServerInfoBean>(){
             @Override

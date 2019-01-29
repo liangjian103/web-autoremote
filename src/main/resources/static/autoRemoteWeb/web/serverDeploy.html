@@ -19,7 +19,7 @@
             , cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
             , cols: [[
                 {type:'checkbox',fixed: 'left'}
-                ,{field:'id', width:50, sort: true,title:'ID'}
+                ,{field:'id', width:80, sort: true,title:'ID'}
                 ,{field:'ip', width:120, sort: true, edit: 'text',title:'IP'}
                 ,{field:'serverName', edit:'text', minWidth: 100,width:150,title:'服务名称'}
                 ,{field:'serverPath', edit:'text', minWidth: 200,title:'服务路径'}
@@ -138,18 +138,19 @@
                                 var pid = (obj.result.pid==''||obj.result.pid==null)?"未启动":"已启动("+obj.result.pid+")";
 
                                 $(".layui-table-body.layui-table-main").find("tr").each(function () {
-                                    // console.log($(this).find(".layui-table-cell.laytable-cell-1-0-1").html());
-                                    // console.log($(this).find(".layui-table-cell.laytable-cell-1-0-5").html());
-                                    var id = $(this).find(".layui-table-cell.laytable-cell-1-0-1").html();
+                                    var id = $(this).find("div[class$='-0-1']").html();
                                     if(id==obj.result.id){
-                                        $(this).find(".layui-table-cell.laytable-cell-1-0-5").html(pid);
+                                        // $(this).find(".layui-table-cell.laytable-cell-1-0-5").html(pid);
+                                        $(this).find("div[class$='-0-5']").html(pid)
                                     }
                                 });
                             }else{
                                 $(".layui-table-body.layui-table-main").find("tr").each(function () {
-                                    var id = $(this).find(".layui-table-cell.laytable-cell-1-0-1").html();
+                                    // var id = $(this).find(".layui-table-cell.laytable-cell-1-0-1").html();
+                                    var id = $(this).find("div[class$='-0-1']").html();
                                     if(id==obj.result.id){
-                                        $(this).find(".layui-table-cell.laytable-cell-1-0-5").html(obj.bak);
+                                        // $(this).find(".layui-table-cell.laytable-cell-1-0-5").html(obj.bak);
+                                        $(this).find("div[class$='-0-5']").html(obj.bak)
                                     }
                                 });
                             }
@@ -228,8 +229,8 @@
 
 <script type="text/html" id="barDemo">
 	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="queryState">查询进程</a>
-	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="reboot">重启</a>
-	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="upPackage">升级</a>
+	<!--<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="reboot">重启</a>-->
+	<!--<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="upPackage">升级</a>-->
 	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="save">保存</a>
 	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="asSave">另存</a>
 	<a class="layui-btn layui-btn-xs layui-btn-primary" lay-event="del">删除</a>

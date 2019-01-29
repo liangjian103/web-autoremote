@@ -114,10 +114,10 @@ public class AutoRemoteService {
      * 查询所有备案信息
      * @return
      */
-	public Map<String,Object> queryServerInfoList(){
+	public Map<String,Object> queryServerInfoList(ServerInfoBean serverInfoBean){
         Map<String,Object> map = new HashMap<String, Object>();
 	    try{
-            List<ServerInfoBean> list = autoRemoteDao.queryServerInfoList();
+            List<ServerInfoBean> list = autoRemoteDao.queryServerInfoList(serverInfoBean);
             map.put("state","1001");
             map.put("result",list);
             map.put("bak","查询成功");
