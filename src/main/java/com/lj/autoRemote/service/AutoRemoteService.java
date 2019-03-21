@@ -239,6 +239,10 @@ public class AutoRemoteService {
         params.add("ip", serverInfoBean.getIp());
         params.add("serverName", serverInfoBean.getServerName());
         params.add("serverPath", serverInfoBean.getServerPath());
+        params.add("upDir", serverInfoBean.getUpDir());
+        params.add("bakDir", serverInfoBean.getBakDir());
+        params.add("psCommand", serverInfoBean.getPsCommand());
+        params.add("runCommand", serverInfoBean.getRunCommand());
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
         //  执行HTTP请求
         logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Start");
@@ -263,7 +267,6 @@ public class AutoRemoteService {
         //  也支持中文
         params.add("id", serverInfoBean.getId() + "");
         params.add("ip", serverInfoBean.getIp());
-        params.add("state", serverInfoBean.getState());
         HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
         //  执行HTTP请求
         logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Start");
@@ -281,13 +284,11 @@ public class AutoRemoteService {
 	public Map<String,Object> queryServerRunState(ServerInfoBean serverInfoBean){
         Map<String,Object> map = new HashMap<String, Object>();
         int id = serverInfoBean.getId();
-        String ip = serverInfoBean.getIp();
-        String serverName = serverInfoBean.getServerName();
-        String serverPath = serverInfoBean.getServerPath();
+        String psCommand = serverInfoBean.getPsCommand();
         Map<String,Object> rsMap = new HashMap<String,Object>();
         rsMap.put("id",id);
         try {
-            String pid = CmdToolkit.queryProcessPid(serverPath);
+            String pid = CmdToolkit.queryProcessPid(psCommand);
             rsMap.put("pid",pid);
             map.put("state","1001");
             map.put("result",rsMap);
@@ -357,6 +358,67 @@ public class AutoRemoteService {
                             //HTTP参数设置
                             MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
                             params.add("file", fileSystemResource);
+                            HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
+                            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
+                            //返回结果
+                            String responseBody = response.getBody();
+                            logger.info("sendRemoteFile,URL:"+url+",responseBody:"+responseBody);
+                            map.put(serverInfoBean.getId()+"",JSON.parse(responseBody));
+                        } catch (Exception e) {
+                            String message = "发送文件到远程服务节点失败! URL:"+url+","+e.getMessage();
+                            logger.error(message,e);
+                            map.put(serverInfoBean.getId()+"",message);
+                        }
+                        latch.countDown();// 计数减一
+                    }
+                }).start();
+            }
+            latch.await();// 等待子线程结束
+            //删除临时文件夹
+            FileUtils.deleteDirectory(tempDirectory);
+        }else {
+            map.put("info","DB没有web-autoremote服务部署节点");
+        }
+        return map;
+    }
+
+    /**
+     * 向备案表中指定的远程服务传输程序包
+     */
+    public Map<String,Object> listServerUp(List<ServerInfoBean> list,MultipartFile multipartFile)throws Exception{
+        final Map<String,Object> map = new HashMap<String, Object>();
+        if(list!=null&&list.size()>0){
+            String tempPathDir = tempPath+File.separator+ UUID.randomUUID().toString()+File.separator;
+            File tempDirectory = new File(tempPathDir);
+            tempDirectory.mkdirs();
+            final String tempFilePath = tempPathDir + multipartFile.getOriginalFilename();
+            File tempFile = new File(tempFilePath);
+
+            try {
+                //保存临时文件
+                multipartFile.transferTo(tempFile);
+            } catch (IOException e) {
+                String message = "写临时文件出错! tempFilePath:"+tempFilePath;
+                logger.error(message,e);
+                throw new IOException(message,e);
+            }
+
+            final CountDownLatch latch = new CountDownLatch(list.size());// 同步辅助类
+            for (final ServerInfoBean serverInfoBean : list) {
+                final String url = "http://" + serverInfoBean.getIp() + ":" + port + "/autoRemote/apis/local/listServerUp";
+                new Thread(new Runnable(){
+                    @Override
+                    public void run() {
+                        try {
+                            FileSystemResource fileSystemResource = new FileSystemResource(tempFilePath);
+                            //设置HTTP头信息
+                            HttpHeaders headers = new HttpHeaders();
+                            headers.setContentType(MediaType.MULTIPART_FORM_DATA);
+                            headers.add("Content-Disposition", "filename=\"" + fileSystemResource.getFilename() + "\"");
+                            //HTTP参数设置
+                            MultiValueMap<String, Object> params = new LinkedMultiValueMap<String, Object>();
+                            params.add("file", fileSystemResource);
+                            params.add("upDir", serverInfoBean.getUpDir());
                             HttpEntity<MultiValueMap<String, Object>> requestEntity = new HttpEntity<MultiValueMap<String, Object>>(params, headers);
                             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, requestEntity, String.class);
                             //返回结果
@@ -566,8 +628,6 @@ public class AutoRemoteService {
                             //  也支持中文
                             params.add("id", serverInfoBean.getId() + "");
                             params.add("ip", serverInfoBean.getIp());
-                            params.add("serverName", serverInfoBean.getServerName());
-                            params.add("serverPath", serverInfoBean.getServerPath());
                             HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<MultiValueMap<String, String>>(params, headers);
                             //  执行HTTP请求
                             logger.info("request URL:" + url + ",param:" + serverInfoBean.toString() + ",Start");

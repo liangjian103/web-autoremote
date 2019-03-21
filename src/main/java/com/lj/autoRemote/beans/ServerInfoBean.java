@@ -9,10 +9,11 @@ public class ServerInfoBean {
     private String ip;//IP
     private String serverName;//服务名称
     private String serverPath;//服务部署路径
-    private String state;//启动状态（最后一次启动进程号）
-    private String commandStart;//启动命令
-    private Integer seq;//序号
-    private Long startTime;//启动时间
+    private String upDir;//上传程序包位置
+    private String bakDir;//老程序包备份位置
+    private String psCommand;//查看进程命令
+    private String runCommand;//启动命令
+    private String state;//启动状态
 
     public Integer getId() {
         return id;
@@ -46,36 +47,44 @@ public class ServerInfoBean {
         this.serverPath = serverPath;
     }
 
+    public String getUpDir() {
+        return upDir;
+    }
+
+    public void setUpDir(String upDir) {
+        this.upDir = upDir;
+    }
+
+    public String getBakDir() {
+        return bakDir;
+    }
+
+    public void setBakDir(String bakDir) {
+        this.bakDir = bakDir;
+    }
+
+    public String getPsCommand() {
+        return psCommand;
+    }
+
+    public void setPsCommand(String psCommand) {
+        this.psCommand = psCommand;
+    }
+
+    public String getRunCommand() {
+        return runCommand;
+    }
+
+    public void setRunCommand(String runCommand) {
+        this.runCommand = runCommand;
+    }
+
     public String getState() {
         return state;
     }
 
     public void setState(String state) {
         this.state = state;
-    }
-
-    public String getCommandStart() {
-        return commandStart;
-    }
-
-    public void setCommandStart(String commandStart) {
-        this.commandStart = commandStart;
-    }
-
-    public Integer getSeq() {
-        return seq;
-    }
-
-    public void setSeq(Integer seq) {
-        this.seq = seq;
-    }
-
-    public Long getStartTime() {
-        return startTime;
-    }
-
-    public void setStartTime(Long startTime) {
-        this.startTime = startTime;
     }
 
     @Override
@@ -85,10 +94,10 @@ public class ServerInfoBean {
                 ", ip='" + ip + '\'' +
                 ", serverName='" + serverName + '\'' +
                 ", serverPath='" + serverPath + '\'' +
-                ", state='" + state + '\'' +
-                ", commandStart='" + commandStart + '\'' +
-                ", seq=" + seq +
-                ", startTime=" + startTime +
+                ", upDir='" + upDir + '\'' +
+                ", bakDir='" + bakDir + '\'' +
+                ", psCommand='" + psCommand + '\'' +
+                ", runCommand='" + runCommand + '\'' +
                 '}';
     }
 }

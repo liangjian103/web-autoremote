@@ -1,5 +1,6 @@
 package com.lj.autoRemote.actions;
 
+import com.alibaba.fastjson.JSON;
 import com.lj.autoRemote.beans.ServerInfoBean;
 import com.lj.autoRemote.service.AutoRemoteService;
 import com.lj.utils.JsonUtil;
@@ -16,6 +17,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -297,7 +299,7 @@ public class AutoRemoteController {
 			map.put("bak", "服务重启请求已发送。" + e.getMessage());
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
-			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+			logger.error("AutoRemoteController /rebootServer is ERROR!" + e.getMessage(), e);
 		}
 	}
 	/**
@@ -318,7 +320,7 @@ public class AutoRemoteController {
 			map.put("bak", "服务重启请求已发送。" + e.getMessage());
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
-			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+			logger.error("AutoRemoteController /rebootServerByIp is ERROR!" + e.getMessage(), e);
 		}
 	}
 
@@ -374,7 +376,7 @@ public class AutoRemoteController {
 			map.put("bak", "服务重启请求已发送。" + e.getMessage());
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
-			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+			logger.error("AutoRemoteController /setupServer is ERROR!" + e.getMessage(), e);
 		}
 	}
 
@@ -396,7 +398,7 @@ public class AutoRemoteController {
 			map.put("bak", "更新程序包请求已发送。" + e.getMessage());
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
-			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+			logger.error("AutoRemoteController /setupServer is ERROR!" + e.getMessage(), e);
 		}
 	}
 
@@ -418,7 +420,7 @@ public class AutoRemoteController {
 			map.put("bak", "更新程序包请求已发送。" + e.getMessage());
 			returnStr = JsonUtil.toCompatibleJSONString(map);
 			retrunData(response, returnStr);
-			logger.error("AutoRemoteController /local/rebootServer is ERROR!" + e.getMessage(), e);
+			logger.error("AutoRemoteController /synDB is ERROR!" + e.getMessage(), e);
 		}
 	}
 
@@ -450,6 +452,62 @@ public class AutoRemoteController {
             logger.error("AutoRemoteController /local/synDB is ERROR!" + e.getMessage(), e);
         }
     }
+
+    /**
+     * 上传文件到备案表
+     */
+    @RequestMapping(value = "/listServerUp", method = {RequestMethod.POST, RequestMethod.GET})
+    public void remoteListServerUp(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) throws Exception {
+		String returnStr = "upload success";
+		try {
+			String serverInfoBeanListStr = request.getParameter("serverInfoBeanList");
+			if(serverInfoBeanListStr!=null){
+				List<ServerInfoBean> serverInfoBeanList = JSON.parseArray(serverInfoBeanListStr,ServerInfoBean.class);
+				Map<String,Object> map = autoRemoteService.listServerUp(serverInfoBeanList,file);
+				returnStr = JsonUtil.toCompatibleJSONString(map);
+			}else{
+				Map<String,Object> map = new HashMap<String,Object>();
+				map.put("state","9001");
+				map.put("bak","请选择需要上传的服务位置");
+				returnStr = JsonUtil.toCompatibleJSONString(map);
+			}
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String,Object> map = new HashMap<String,Object>();
+			map.put("state","9001");
+			map.put("bak","程序包上传异常。"+e.getMessage());
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /listServerUp is ERROR!"+e.getMessage(),e);
+		}
+    }
+
+	/**
+	 * 程序升级包上传(本地)
+	 */
+	@RequestMapping(value = "/local/listServerUp", method = {RequestMethod.POST, RequestMethod.GET})
+	public void listServerUp(HttpServletRequest request, HttpServletResponse response, @RequestParam("file") MultipartFile file) throws Exception {
+		String returnStr = "";
+		try {
+			String upDir = request.getParameter("upDir");
+			new File(upDir).mkdirs();
+			//保存到本地
+			String filePathName = upDir + File.separator + file.getOriginalFilename();
+			file.transferTo(new File(filePathName));
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "1001");
+			map.put("bak", "程序升级包上传成功! Host:"+request.getLocalAddr()+", RemoteHost:"+request.getRemoteHost()+" Path:"+filePathName);
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+		} catch (Exception e) {
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("state", "9001");
+			map.put("bak", "程序升级包上传异常。" + e.getMessage());
+			returnStr = JsonUtil.toCompatibleJSONString(map);
+			retrunData(response, returnStr);
+			logger.error("AutoRemoteController /local/listServerUp is ERROR!" + e.getMessage(), e);
+		}
+	}
 
 	/**
 	 * 返回结果

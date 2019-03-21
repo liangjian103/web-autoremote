@@ -10,7 +10,7 @@
 
 <script src="layui/layui.js"></script>
 <script>
-    layui.use(['table','element'], function(){
+    layui.use(['table','element','upload'], function(){
         var table = layui.table;
         table.render({
             elem:'#demo'
@@ -19,11 +19,15 @@
             , cellMinWidth: 80 //全局定义常规单元格的最小宽度，layui 2.2.1 新增
             , cols: [[
                 {type:'checkbox',fixed: 'left'}
-                ,{field:'id', width:80, sort: true,title:'ID'}
-                ,{field:'ip', width:120, sort: true, edit: 'text',title:'IP'}
+                ,{field:'id', width:50, sort: true,title:'ID'}
+                ,{field:'ip', width:140, sort: true, edit: 'text',title:'IP'}
                 ,{field:'serverName', edit:'text', minWidth: 100,width:150,title:'服务名称'}
-                ,{field:'serverPath', edit:'text', minWidth: 200,title:'服务路径'}
                 ,{field:'state', minWidth: 100,title:'运行状态'}
+                ,{field:'upDir', edit:'text', minWidth: 200,title:'上传包位置'}
+                ,{field:'serverPath', edit:'text', minWidth: 200,title:'部署服务路径'}
+                ,{field:'bakDir', edit:'text', minWidth: 200,title:'老程序包位置'}
+                ,{field:'runCommand', edit:'text', minWidth: 200,title:'启动命令'}
+                ,{field:'psCommand', edit:'text', minWidth: 200,title:'查看进程命令'}
                 ,{fixed:'right', width:350, align:'center', toolbar: '#barDemo',title:'操作'}
             ]]
             ,request:{pageName: 'page',limitName: 'limit'}
@@ -73,6 +77,10 @@
 					,ip:data.ip
 					,serverName:data.serverName
 					,serverPath:data.serverPath
+					,upDir:data.upDir
+					,bakDir:data.bakDir
+					,psCommand:data.psCommand
+					,runCommand:data.runCommand
 					},
                     function(data,status){
                         $("#rs2").html(data);
@@ -83,6 +91,10 @@
                         ip:data.ip
                         ,serverName:data.serverName
                         ,serverPath:data.serverPath
+                        ,upDir:data.upDir
+                        ,bakDir:data.bakDir
+                        ,psCommand:data.psCommand
+                        ,runCommand:data.runCommand
                     },
                     function(data,status){
                         $("#rs2").html(data);
@@ -94,13 +106,14 @@
                         ,ip:data.ip
                         ,serverName:data.serverName
                         ,serverPath:data.serverPath
+                        ,upDir:data.upDir
+                        ,bakDir:data.bakDir
+                        ,psCommand:data.psCommand
+                        ,runCommand:data.runCommand
                     },
                     function(data,status){
                         $("#rs2").html(data);
                         var dataObj = eval("(" + data + ")");
-                        obj.update({
-                            state: dataObj.result.pid
-                        });
                         if(dataObj.state=='1001'){
                             var pid = (dataObj.result.pid==''||dataObj.result.pid==null)?"未启动":"已启动("+dataObj.result.pid+")"
                             obj.update({
@@ -123,10 +136,14 @@
                 // layer.alert(JSON.stringify(data));
 				for(var i in data){
                         param = {
-                            id:data[i].id,
-                            ip:data[i].ip,
-                            serverName:data[i].serverName,
-                            serverPath:data[i].serverPath
+                            id:data[i].id
+                            ,ip:data[i].ip
+                            ,serverName:data[i].serverName
+                            ,serverPath:data[i].serverPath
+                            ,upDir:data[i].upDir
+                            ,bakDir:data[i].bakDir
+                            ,psCommand:data[i].psCommand
+                            ,runCommand:data[i].runCommand
                         };
                         $.post("/autoRemote/apis/queryServerRunState",param,
 						function(rs,status){
@@ -140,8 +157,8 @@
                                 $(".layui-table-body.layui-table-main").find("tr").each(function () {
                                     var id = $(this).find("div[class$='-0-1']").html();
                                     if(id==obj.result.id){
-                                        // $(this).find(".layui-table-cell.laytable-cell-1-0-5").html(pid);
-                                        $(this).find("div[class$='-0-5']").html(pid)
+                                        // $(this).find(".layui-table-cell.laytable-cell-1-0-4").html(pid);
+                                        $(this).find("div[class$='-0-4']").html(pid)
                                     }
                                 });
                             }else{
@@ -149,8 +166,8 @@
                                     // var id = $(this).find(".layui-table-cell.laytable-cell-1-0-1").html();
                                     var id = $(this).find("div[class$='-0-1']").html();
                                     if(id==obj.result.id){
-                                        // $(this).find(".layui-table-cell.laytable-cell-1-0-5").html(obj.bak);
-                                        $(this).find("div[class$='-0-5']").html(obj.bak)
+                                        // $(this).find(".layui-table-cell.laytable-cell-1-0-4").html(obj.bak);
+                                        $(this).find("div[class$='-0-4']").html(obj.bak)
                                     }
                                 });
                             }
@@ -191,6 +208,32 @@
         $('.demoTable .layui-btn').on('click', function(){
             var type = $(this).data('type');
             active[type] ? active[type].call(this) : '';
+        });
+
+
+		//上传文件
+        var upload = layui.upload;
+        //执行实例
+        var uploadInst = upload.render({
+            elem: '#listServerUp' //绑定元素
+            ,url: '/autoRemote/apis/listServerUp' //上传接口
+            ,accept:'file'
+            ,field:'file'//文本域名称
+			,before: function(obj){
+                var checkStatus = table.checkStatus('nodeData')
+                    ,data = checkStatus.data;
+                this.data={'serverInfoBeanList':JSON.stringify(data)};//关键代码
+            }
+            ,done: function(res){
+                //上传完毕回调
+                layer.msg('上传程序成功');
+                $("#rs2").html('上传程序成功'+JSON.stringify(res));
+                console.log(res);
+            }
+            ,error: function(){
+                //请求异常回调
+                layer.msg('上传新程序失败');
+            }
         });
 
     });
@@ -242,7 +285,9 @@
 	<button class="layui-btn layui-btn-radius layui-btn-primary" data-type="getCheckLength">获取选中数目</button>
 	<button class="layui-btn layui-btn-radius layui-btn-primary" data-type="isAll">验证是否全选</button>
 </div>
-
+<button type="button" class="layui-btn" id="listServerUp">
+	<i class="layui-icon">&#xe67c;</i>上传新程序
+</button>
 <pre id="rs2" class="layui-code" lay-title="" lay-height="" lay-skin="" lay-encode=""></pre>
 
 </body>

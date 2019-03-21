@@ -33,8 +33,8 @@ public class AutoRemoteDao {
      * @throws Exception
      */
     public void saveServerInfo(ServerInfoBean serverInfoBean) throws Exception{
-        String sql = "insert into tb_server_deploy (ip,serverName,serverPath,command_start,state,seq) values (?,?,?,?,?,?) ";
-        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getServerName(),serverInfoBean.getServerPath(),serverInfoBean.getCommandStart(),serverInfoBean.getState(),serverInfoBean.getSeq()});
+        String sql = "insert into tb_server_deploy (ip,serverName,serverPath,upDir,bakDir,psCommand,runCommand) values (?,?,?,?,?,?,?) ";
+        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getServerName(),serverInfoBean.getServerPath(),serverInfoBean.getUpDir(),serverInfoBean.getBakDir(),serverInfoBean.getPsCommand(),serverInfoBean.getRunCommand()});
     }
 
     /**
@@ -43,8 +43,8 @@ public class AutoRemoteDao {
      * @throws Exception
      */
     public void updateServerInfoById(ServerInfoBean serverInfoBean) throws Exception{
-        String sql = "update tb_server_deploy set ip=?,serverName=?,serverPath=?,state=?,command_start=? where id=? ";
-        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getServerName(),serverInfoBean.getServerPath(),serverInfoBean.getState(),serverInfoBean.getCommandStart(),serverInfoBean.getId()});
+        String sql = "update tb_server_deploy set ip=?,serverName=?,serverPath=?,upDir=?,bakDir=?,psCommand=?,runCommand=? where id=? ";
+        jdbcTemplateForSqlLite.update(sql,new Object[]{serverInfoBean.getIp(),serverInfoBean.getServerName(),serverInfoBean.getServerPath(),serverInfoBean.getUpDir(),serverInfoBean.getBakDir(),serverInfoBean.getPsCommand(),serverInfoBean.getRunCommand(),serverInfoBean.getId()});
     }
 
     /**
@@ -77,8 +77,10 @@ public class AutoRemoteDao {
                 serverInfoBean.setIp(rs.getString("ip"));
                 serverInfoBean.setServerName(rs.getString("serverName"));
                 serverInfoBean.setServerPath(rs.getString("serverPath"));
-                serverInfoBean.setState(rs.getString("state"));
-                serverInfoBean.setSeq(rs.getInt("seq"));
+                serverInfoBean.setUpDir(rs.getString("upDir"));
+                serverInfoBean.setBakDir(rs.getString("bakDir"));
+                serverInfoBean.setPsCommand(rs.getString("psCommand"));
+                serverInfoBean.setRunCommand(rs.getString("runCommand"));
                 return serverInfoBean;
             }
         });
@@ -99,8 +101,10 @@ public class AutoRemoteDao {
                 serverInfoBean.setIp(rs.getString("ip"));
                 serverInfoBean.setServerName(rs.getString("serverName"));
                 serverInfoBean.setServerPath(rs.getString("serverPath"));
-                serverInfoBean.setState(rs.getString("state"));
-                serverInfoBean.setSeq(rs.getInt("seq"));
+                serverInfoBean.setUpDir(rs.getString("upDir"));
+                serverInfoBean.setBakDir(rs.getString("bakDir"));
+                serverInfoBean.setPsCommand(rs.getString("psCommand"));
+                serverInfoBean.setRunCommand(rs.getString("runCommand"));
                 return serverInfoBean;
             }
         });
@@ -119,8 +123,6 @@ public class AutoRemoteDao {
                 ServerInfoBean serverInfoBean = new ServerInfoBean();
                 serverInfoBean.setId(rs.getInt("id"));
                 serverInfoBean.setIp(rs.getString("ip"));
-                serverInfoBean.setState(rs.getString("state"));
-                serverInfoBean.setStartTime(rs.getLong("startTime"));
                 return serverInfoBean;
             }
         });
@@ -139,8 +141,6 @@ public class AutoRemoteDao {
                 ServerInfoBean serverInfoBean = new ServerInfoBean();
                 serverInfoBean.setId(rs.getInt("id"));
                 serverInfoBean.setIp(rs.getString("ip"));
-                serverInfoBean.setState(rs.getString("state"));
-                serverInfoBean.setStartTime(rs.getLong("startTime"));
                 return serverInfoBean;
             }
         });
